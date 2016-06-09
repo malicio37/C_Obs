@@ -78,11 +78,11 @@ myApp.onPageInit('registroUsuario', function (page) {
       var params= '{"id":3' + ','+ '"nombres":"' + nombres + '",' + '"apellidos":"' + apellidos + '",'+
       '"fechaNacimiento":"' + fechaNacimiento + '",' + '"mail":"' + mail + '", "password":"' + password  + '",'+ '"color":"' + color + '",'+
       '"genero":"' + genero + '",'+ '"tipo":"' + tipo + '"}';
-        console.log(params);
+
         $$.post(backend +'/usuario', params, function (data) {
         if(data.indexOf('error') > -1){
 
-          console.log ('usuario no pudo crearse por: ' + data);
+          myApp.alert('usuario no pudo crearse por: ' + data);
           //cargar la página del formulario de inscripcion
           mainView.router.loadPage("inscripcion.html");
         }
@@ -98,13 +98,17 @@ myApp.onPageInit('registroUsuario', function (page) {
   });
 
 
-  myApp.onPageInit('index', function (page) {
-    var pageContainer = $$(page.container);
-    pageContainer.find('.botonLogout').on('click', function () {
-      mainView.router.loadPage("index.html");
+  myApp.onPageInit('seleccionCarrera', function (page) {
+    //cargar los valores de carreras previos
+    var params = '{"usuarioMail":"'+ email + '"}';
+    $$.post(backend +'/carrerasInscritas', params, function (data) {
+      var nodosInscritos= data;
+      console.log(data);
     });
-    pageContainer.find('.botonLogout').on('click', function () {
-      console.log ('otro boton');
+
+    var pageContainer = $$(page.container);
+    pageContainer.find('.botonIngresar').on('click', function () {
+        console.log('ingresando a principal');
     });
   });
 

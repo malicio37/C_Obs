@@ -51,6 +51,8 @@ $app->post('/usuario/login', 'getLogin2');
 $app->put('/carrera/:id', 'actualizarEstadoCarrera');
 $app->put('/carrera', 'desactivarCarreras');
 $app->get('/usuario/:mail', 'getLogin');
+$app->post('/carrerasInscritas', 'getCarrerasInscritas');
+
 
 $app->get('/', function() {
             echo "Pagina de gestión API REST de mi aplicación.";
@@ -84,6 +86,28 @@ function getNodo($id){
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
  }
+
+
+ function getCarrerasInscritas(){
+ 	global $db, $request, $response;
+	$inscripcion = json_decode($request->getBody());
+
+			/*filtre carreras en las que el usuario se encuentra inscrito y la carrera se encuentra activa
+			 *@param mail  el correo del usuario
+			 */
+      $sql = "SELECT carrera.id, carrera.nombre FROM carrera INNER JOIN (SELECT carreraId FROM inscripcion
+							WHERE usuarioMail=:usuarioMail)AS a ON carrera.id=a.carreraId WHERE carrera.estado=1";
+      try {
+         $stmt = $db->prepare($sql);
+         $stmt->bindParam("usuarioMail", $inscripcion->usuarioMail);
+         $stmt->execute();
+				 $inscripcion = $stmt->fetchAll(PDO::FETCH_OBJ);
+         $response->write( json_encode($inscripcion));
+     } catch(PDOException $e) {
+         echo '{"error":{"text":'. $e->getMessage() .'}}';
+     }
+  }
+
 
  function addCarrera() {
 	global $db, $request;
