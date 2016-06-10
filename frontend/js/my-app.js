@@ -102,11 +102,21 @@ myApp.onPageInit('registroUsuario', function (page) {
     //cargar los valores de carreras previos
     var params = '{"usuarioMail":"'+ email + '"}';
     $$.post(backend +'/carrerasInscritas', params, function (data) {
-      var nodosInscritos= data;
-      console.log(data);
+      var carrerasInscritas= data;
     });
-
+    //cargar valores en el select carrerasInscritas
     var pageContainer = $$(page.container);
+
+
+
+    var objeto= pageContainer.find('select[name="carrerasInscritas"]');
+    console.log(objeto);
+    var opcion = document.createElement("option");
+    opcion.text = "Kiwi";
+    opcion.value = 10;
+    objeto.append(opcion);
+
+
     pageContainer.find('.botonIngresar').on('click', function () {
         console.log('ingresando a principal');
     });
