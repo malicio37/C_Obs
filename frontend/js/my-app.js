@@ -102,18 +102,13 @@ myApp.onPageInit('registroUsuario', function (page) {
     //cargar los valores de carreras previos
     var params = '{"usuarioMail":"'+ email + '"}';
     $$.post(backend +'/carrerasInscritas', params, function (data) {
-      var carrerasInsc= data;
+      var arreglo=JSON.parse(data);
+      //console.log(arreglo[0].nombre);
       //cargar valores en el select carrerasInscritas
-      console.log(carrerasInsc);
-      for(i in carrerasInsc){
+      for(i=0;i < Object.keys(arreglo).length; i++){
+        console.log(arreglo[i].id + ': ' +arreglo[i].nombre);
+      }
 
-                  console.log(carrerasInsc[i].id + carrerasInsc[i].nombre);
-
-          }
-
-      $$.each(data, function (key, value) {
-        myApp.alert(key + ': ' + value);
-      });
     });
 
 
