@@ -40,438 +40,799 @@ $db = new PDO('mysql:host=' . BD_SERVIDOR . ';dbname=' . BD_NOMBRE . ';charset=u
 $db -> setAttribute(PDO::ATTR_ERRMODE,
                     PDO::ERRMODE_EXCEPTION);
 
+
 ////////////////////////////////////////////////////////////////////////////////
 
+//login
 $app->get('/', function() {
-            echo "Pagina de gestión API REST de mi aplicación.";
+            echo "Pagina de gestión API REST de Carrea de Observación UAM.";
         });
 
-$app->get('/nodo', 'getNodos');
-$app->get('/carrera', 'getCarreras');
-$app->get('/usuario', 'getUsuarios');
-$app->get('/pregunta', 'getPreguntas');
-$app->get('/inscripcion', 'getInscripciones');
-$app->get('/nodoDescubierto', 'getNodosDescubiertos');
-
-
-$app->get('/nodo/:id', 'getNodo');
-$app->get('/carrera/:id', 'getCarrera');
-$app->get('/usuario/:mail', 'getUsuario');
-$app->get('/pregunta/:id', 'getPregunta');
-$app->get('/nodoDescubierto/:id', 'getNodoDescubierto');
-$app->get('/inscripcion/:id', 'getInscripcion');
-
-$app->post('/carrera', 'addCarrera');
-$app->post('/usuario', 'addUsuario');
-$app->post('/nodo', 'addNodo');
-$app->post('/pregunta', 'addPregunta');
-$app->post('/inscripcion', 'addInscripcion');
-$app->post('/nodoDescubierto', 'addNodoDescubierto');
-
-
-//actualizaciones completas de los elementos PUT
-
-
+////////////////////////////////////////////////////////////////////////////////
+// Business logic API
 //get login con los datos ocultos
-$app->post('/usuario/login', 'getLogin2');
+$app->post('/users/login', 'getLogin2');
 
 /*filtre carreras en las que el usuario se encuentra inscrito y la carrera se encuentra activa
- *@param mail  el correo del usuario
+ *@param email  el email del usuario
  */
-$app->post('/carrerasInscritas', 'getCarrerasInscritas');
-
-//desactivar todas las carreras
-$app->put('/carrera', 'desactivarCarreras');
-
-//actualizar el estado de una carrera específica
-$app->put('/carrera/:id', 'actualizarEstadoCarrera');
+$app->post('/circuitosInscritos', 'getCircuitInscripted');
 
 
 
+function getCircuitInscripted(){
+ global $db, $request, $response;
+ $inscription = json_decode($request->getBody());
 
+		 /*filtre carreras en las que el user se encuentra inscrito y la carrera se encuentra activa
+			*@param email  el email del user
+			*/
+		 $sql = "SELECT circuit.id, circuit.name FROM circuit INNER JOIN (SELECT circuit_id FROM inscription
+						 WHERE user_id=:user_id)AS a ON circuit.id=a.circuit_id WHERE circuit.status=1";
+		 try {
+				$stmt = $db->prepare($sql);
+				$stmt->bindParam("user_id", $inscription->user_id);
+				$stmt->execute();
+				$inscription = $stmt->fetchAll(PDO::FETCH_OBJ);
+				$response->write( json_encode($inscription));
+		} catch(PDOException $e) {
+				echo '{"error":{"text":'. $e->getMessage() .'}}';
+		}
+ }
 
+//{"user_id":1}
 
-
-function getNodos(){
-	global $db, $response;
-    $sql = "select * FROM nodo ORDER BY id";
+ function getLogin2() {
+	global $db, $request;
+    //si status = 1 requiere un update antes de hacer el insert
+    $user = json_decode($request->getBody());
+	$sql = "SELECT * FROM user WHERE email=:email";
     try {
-        $stmt = $db->query($sql);
-        $nodos = $stmt->fetchAll(PDO::FETCH_OBJ);
-        $response->write( json_encode($nodos));
+
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam("email", $user->email);
+
+        $stmt->execute();
+				$user = $stmt->fetchObject();
+
+        echo json_encode($user);
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
 
-function getCarreras(){
+//{"email":"jmmejia@autonoma.edu.co"}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Nodes
+$app->get('/nodes', 'getNodes');
+$app->get('/nodes/:id', 'getNode');
+$app->post('/nodes', 'addNode');
+$app->put('/nodes/:id', 'updateNode');
+$app->delete('/nodes/:id', 'deleteNode');
+
+////////////////////////////////////////////////////////////////////////////////
+// Circuits
+$app->get('/circuits', 'getCircuits');
+$app->get('/circuits/:id', 'getCircuits');
+$app->post('/circuits', 'addCircuit');
+$app->put('/circuits/:id', 'updateCircuit');
+$app->delete('/circuits/:id', 'deleteCircuit');
+
+////////////////////////////////////////////////////////////////////////////////
+// Users
+$app->get('/users', 'getUsers');
+$app->get('/users/:email', 'getUser');
+$app->post('/users', 'addUser');
+$app->put('/users/:id', 'updateUser');
+$app->delete('/users/:id', 'deleteUser');
+
+////////////////////////////////////////////////////////////////////////////////
+// Questions
+$app->get('/questions', 'getQuestions');
+$app->get('/questions/:id', 'getQuestion');
+$app->post('/questions', 'addQuestion');
+$app->put('/questions/:id', 'updateQuestion');
+$app->delete('/questions/:id', 'deleteQuestion');
+
+////////////////////////////////////////////////////////////////////////////////
+// Inscriptions
+$app->get('/inscriptions', 'getInscriptions');
+$app->get('/inscriptions/:id', 'getInscription');
+$app->post('/inscriptions', 'addInscription');
+$app->put('/inscriptions/:id', 'updateInscription');
+$app->delete('/inscriptions/:id', 'deleteInscription');
+
+////////////////////////////////////////////////////////////////////////////////
+// NodesDiscovered
+$app->get('/nodesdiscovered', 'getNodesDiscovered');
+$app->get('/nodesdiscovered/:id', 'getNodeDiscovered');
+$app->post('/nodesdiscovered', 'addNodeDiscovered');
+$app->put('/nodesdiscovered/:id', 'updateNodeDiscovered');
+$app->delete('/nodesdiscovered/:id', 'deleteNodeDiscovered');
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+* GET /nodes
+* @return array
+*/
+function getNodes(){
 	global $db, $response;
-    $sql = "select * FROM carrera ORDER BY id";
+    $sql = "select * FROM node ORDER BY id";
     try {
         $stmt = $db->query($sql);
-        $carreras = $stmt->fetchAll(PDO::FETCH_OBJ);
-        $response->write( json_encode($carreras));
+        $nodes = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $response->write( json_encode($nodes));
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
 
-function getUsuarios(){
+
+/**
+* GET /circuits
+* @return array
+*/
+function getCircuits(){
 	global $db, $response;
-    $sql = "select * FROM usuario ORDER BY id";
+    $sql = "select * FROM circuit ORDER BY id";
     try {
         $stmt = $db->query($sql);
-        $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
-        $response->write( json_encode($usuarios));
+        $circuits = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $response->write( json_encode($circuits));
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
 
-function getPreguntas(){
+/**
+* GET /users
+* @return array
+*/
+function getUsers(){
 	global $db, $response;
-    $sql = "select * FROM pregunta ORDER BY id";
+    $sql = "select * FROM user ORDER BY id";
     try {
         $stmt = $db->query($sql);
-        $preguntas = $stmt->fetchAll(PDO::FETCH_OBJ);
-        $response->write( json_encode($preguntas));
+        $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $response->write( json_encode($users));
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
 
-
-function getInscripciones(){
+/**
+* GET /Questions
+* @return array
+*/
+function getQuestions(){
 	global $db, $response;
-    $sql = "select * FROM inscripcion ORDER BY id";
+    $sql = "select * FROM question ORDER BY id";
     try {
         $stmt = $db->query($sql);
-        $inscripciones = $stmt->fetchAll(PDO::FETCH_OBJ);
-        $response->write( json_encode($inscripciones));
+        $questions = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $response->write( json_encode($questions));
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
 
-function getNodosDescubiertos(){
+/**
+* GET /inscriptions
+* @return array
+*/
+function getInscriptions(){
 	global $db, $response;
-    $sql = "select * FROM nododescubierto ORDER BY id";
+    $sql = "select * FROM inscription ORDER BY id";
     try {
         $stmt = $db->query($sql);
-        $nodosDescubiertos = $stmt->fetchAll(PDO::FETCH_OBJ);
-        $response->write( json_encode($nodosDescubiertos));
+        $inscriptions = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $response->write( json_encode($inscriptions));
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
 
+/**
+* GET /NodesDiscovered
+* @return array
+*/
+function getNodesDiscovered(){
+	global $db, $response;
+    $sql = "select * FROM nodediscovered ORDER BY id";
+    try {
+        $stmt = $db->query($sql);
+        $nodesDiscovered = $stmt->fetchAll(PDO::FETCH_OBJ);
+        $response->write( json_encode($nodesDiscovered));
+    } catch(PDOException $e) {
+        echo '{"error":{"text":'. $e->getMessage() .'}}';
+    }
+}
 
+///////////////////////////////////////////////////////////////////////////////
 
-function getNodo($id){
+/**
+* GET /nodes/{id}
+* @param integer $id
+* @return mixed
+*/
+function getNode($id){
 	global $db;
-     $sql = "SELECT * FROM nodo WHERE id=:id";
+     $sql = "SELECT * FROM node WHERE id=:id";
      try {
 
         $stmt = $db->prepare($sql);
         $stmt->bindParam("id", $id);
         $stmt->execute();
-        $nodo = $stmt->fetchObject();
+        $node = $stmt->fetchObject();
 
-        echo json_encode($nodo);
+        echo json_encode($node);
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
  }
 
- function getCarrera($id){
+ /**
+ * GET /circuits/{id}
+ * @param integer $id
+ * @return mixed
+ */
+ function getCircuit($id){
  	global $db;
-      $sql = "SELECT nombre FROM carrera WHERE id=:id";
+      $sql = "SELECT * FROM circuit WHERE id=:id";
       try {
-
          $stmt = $db->prepare($sql);
          $stmt->bindParam("id", $id);
          $stmt->execute();
-         $carrera = $stmt->fetchObject();
-         echo json_encode($carrera);
+         $circuit = $stmt->fetchObject();
+         echo json_encode($circuit);
      } catch(PDOException $e) {
          echo '{"error":{"text":'. $e->getMessage() .'}}';
      }
   }
 
-	function getUsuario($mail){
+	/**
+  * GET /users/{id}
+  * @param integer $id
+  * @return mixed
+  */
+	function getUser($id){
 		global $db;
-	     $sql = "SELECT * FROM usuario WHERE mail=:mail";
+	     $sql = "SELECT * FROM user WHERE id=:id";
 	     try {
 
 	        $stmt = $db->prepare($sql);
-	        $stmt->bindParam("mail", $mail);
+	        $stmt->bindParam("id", $id);
 	        $stmt->execute();
-	        $usuario = $stmt->fetchObject();
+	        $user = $stmt->fetchObject();
 
-	        echo json_encode($usuario);
+	        echo json_encode($user);
 	    } catch(PDOException $e) {
 	        echo '{"error":{"text":'. $e->getMessage() .'}}';
 	    }
 	 }
 
-	 function getPregunta($id){
+	 /**
+   * GET /questions/{id}
+   * @param integer $id
+   * @return mixed
+   */
+function getQuestion($id){
 	 	global $db, $response;
-	     $sql = "SELECT * FROM pregunta WHERE id=:id";
+	     $sql = "SELECT * FROM question WHERE id=:id";
 			 try {
           $stmt = $db->prepare($sql);
           $stmt->bindParam("id", $id);
           $stmt->execute();
-          $pregunta = $stmt->fetchObject();
-          echo json_encode($pregunta);
+          $question = $stmt->fetchObject();
+          echo json_encode($question);
       } catch(PDOException $e) {
           echo '{"error":{"text":'. $e->getMessage() .'}}';
       }
-	 }
+	}
 
-
-	 function getNodoDescubierto($id){
-	 	global $db, $response;
-	     $sql = "SELECT * FROM nododescubierto WHERE id=:id";
-			 try {
-          $stmt = $db->prepare($sql);
-          $stmt->bindParam("id", $id);
-          $stmt->execute();
-          $nododescubierto = $stmt->fetchObject();
-          echo json_encode($nododescubierto);
-      } catch(PDOException $e) {
-          echo '{"error":{"text":'. $e->getMessage() .'}}';
-      }
-	 }
-
-	 function getInscripcion($id){
+	 /**
+   * GET /inscriptions/{id}
+   * @param integer $id
+   * @return mixed
+   */
+	 function getInscription($id){
 		global $db, $response;
-			 $sql = "SELECT * FROM inscripcion WHERE id=:id";
+			 $sql = "SELECT * FROM inscription WHERE id=:id";
 			 try {
 					 $stmt = $db->prepare($sql);
 					 $stmt->bindParam("id", $id);
 					 $stmt->execute();
-					 $inscripcion = $stmt->fetchObject();
-					 echo json_encode($inscripcion);
+					 $inscription = $stmt->fetchObject();
+					 echo json_encode($inscription);
 			 } catch(PDOException $e) {
 					 echo '{"error":{"text":'. $e->getMessage() .'}}';
 			 }
 	 }
 
-
-	function addInscripcion() {
-	 global $db, $request;
-		 //si estado = 1 requiere un update antes de hacer el insert
-		 $inscripcion = json_decode($request->getBody());
-	 	 $sql = "INSERT INTO inscripcion (carreraId, usuarioId) VALUES (:carreraId, :usuarioId)";
-		 try {
-				 $stmt = $db->prepare($sql);
-				 $stmt->bindParam("carreraId", $inscripcion->carreraId);
-				 $stmt->bindParam("usuarioId", $inscripcion->usuarioId);
-				 $stmt->execute();
-				 $inscripcion->id = $db->lastInsertId();
-				 echo json_encode($inscripcion);
-		 } catch(PDOException $e) {
-				 echo '{"error":{"text":'. $e->getMessage() .'}}';
-		 }
-	}
-
-	//{"carreraId":1, "usuarioId":1}
-	//{"carreraId":1, "usuarioId":2}
-	//{"carreraId":2, "usuarioId":1}
+	 /**
+	 * GET /nodesDiscovered/{id}
+	 * @param integer $id
+	 * @return mixed
+	 */
+	 function getNodeDiscovered($id){
+	  global $db, $response;
+	 		$sql = "SELECT * FROM nodeDiscovered WHERE id=:id";
+	 		try {
+	 				$stmt = $db->prepare($sql);
+	 				$stmt->bindParam("id", $id);
+	 				$stmt->execute();
+	 				$nodeDiscovered = $stmt->fetchObject();
+	 				echo json_encode($nodeDiscovered);
+	 		} catch(PDOException $e) {
+	 				echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 		}
+	 }
 
 
-	function addNodoDescubierto() {
-	 global $db, $request;
-		 //si estado = 1 requiere un update antes de hacer el insert
-		 $nododescubierto = json_decode($request->getBody());
-	 $sql = "INSERT  INTO nododescubierto (nodoId, usuarioId, estado, fechaEstado1, fechaEstado2, fechaEstado3) VALUES (:nodoId, :usuarioId, :estado, :fechaEstado1, :fechaEstado2, :fechaEstado3)";
-		 try {
-
-				 $stmt = $db->prepare($sql);
-				 $stmt->bindParam("nodoId", $nododescubierto->nodoId);
-				 $stmt->bindParam("usuarioId", $nododescubierto->usuarioId);
-		 	 	 $stmt->bindParam("estado", $nododescubierto->estado);
-				 $stmt->bindParam("fechaEstado1", $nododescubierto->fechaEstado1);
-				 $stmt->bindParam("fechaEstado2", $nododescubierto->fechaEstado2);
-				 $stmt->bindParam("fechaEstado3", $nododescubierto->fechaEstado3);
-				 $stmt->execute();
-				 $nododescubierto->id = $db->lastInsertId();
-
-				 echo json_encode($nododescubierto);
-		 } catch(PDOException $e) {
-				 echo '{"error":{"text":'. $e->getMessage() .'}}';
-		 }
-	}
-//{"nodoId":1, "usuarioId":1,"estado": 0, "fechaEstado1":"2016-06-10 15:32:31"}
+	 ////////////////////////////////////////////////////////////////////////////
 
 
- function addCarrera() {
+	 /**
+	 * POST /nodes
+	 * @param Request $request
+	 * @return JsonResponse
+	 */
+	 function addNode() {
+	  global $db, $request;
+	 	 //si status = 1 requiere un update antes de hacer el insert
+	 	 $node = json_decode($request->getBody());
+	  	 $sql = "INSERT INTO node (name, description, code, latitude, longitude, hint, circuit_id) VALUES (:name, :description, :code, :latitude, :longitude, :hint, :circuit_id)";
+	 	 try {
+	 			 $stmt = $db->prepare($sql);
+	 			 $stmt->bindParam("name", $node->name);
+	 			 $stmt->bindParam("description", $node->description);
+	 			 $stmt->bindParam("code", $node->code);
+	 			 $stmt->bindParam("latitude", $node->latitude);
+	 			 $stmt->bindParam("longitude", $node->longitude);
+	 			 $stmt->bindParam("hint", $node->hint);
+	 			 $stmt->bindParam("circuit_id", $node->circuit_id);
+	 			 $stmt->execute();
+	 			 $node->id = $db->lastInsertId();
+	 			 echo json_encode($node);
+	 	 } catch(PDOException $e) {
+	 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 	 }
+	 }
+	 //{"name":"nn", "description":"nn","code":"1984-01-28","latitude":"@algo", "longitude":"@algo","hint":"#5454545","circuit_id":1}
+
+
+
+/**
+* POST /circuits
+* @param Request $request
+* @return JsonResponse
+*/
+ function addCircuit() {
 	global $db, $request;
-    //si estado = 1 requiere un update antes de hacer el insert
-    $carrera = json_decode($request->getBody());
-	$sql = "INSERT  INTO carrera (nombre, estado, descripcion) VALUES (:nombre, :estado, :descripcion)";
+    //si status = 1 requiere un update antes de hacer el insert
+    $circuit = json_decode($request->getBody());
+	$sql = "INSERT  INTO circuit (name, status, description) VALUES (:name, :status, :description)";
     try {
-
         $stmt = $db->prepare($sql);
-        $stmt->bindParam("nombre", $carrera->nombre);
-        $stmt->bindParam("estado", $carrera->estado);
-		$stmt->bindParam("descripcion", $carrera->descripcion);
+        $stmt->bindParam("name", $circuit->name);
+        $stmt->bindParam("status", $circuit->status);
+				$stmt->bindParam("description", $circuit->description);
         $stmt->execute();
-        $carrera->id = $db->lastInsertId();
-
-        echo json_encode($carrera);
+        $circuit->id = $db->lastInsertId();
+        echo json_encode($circuit);
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
-//{"nombre":"nn","estado":1,"descripcion":"prueba"}
+//{"name":"nn","status":1,"description":"prueba"}
 
-function addUsuario() {
+/**
+* POST /users
+* @param Request $request
+* @return JsonResponse
+*/
+function addUser() {
  global $db, $request;
-	 //si estado = 1 requiere un update antes de hacer el insert
-	 $usuario = json_decode($request->getBody());
- $sql = "INSERT  INTO usuario (nombres, apellidos, fechaNacimiento, mail, color, genero, tipo) VALUES (:nombres, :apellidos, :fechaNacimiento, :mail, :color, :genero, :tipo)";
+	 //si status = 1 requiere un update antes de hacer el insert
+	 $user = json_decode($request->getBody());
+ $sql = "INSERT  INTO user (name, lastname, birthDate, email, password, color, gender, type) VALUES (:name, :lastname, :birthDate, :email, :password,:color, :gender, :type)";
 	 try {
 
 			 $stmt = $db->prepare($sql);
-			 $stmt->bindParam("nombres", $usuario->nombres);
-			 $stmt->bindParam("apellidos", $usuario->apellidos);
-			 $stmt->bindParam("fechaNacimiento", $usuario->fechaNacimiento);
-			 $stmt->bindParam("mail", $usuario->mail);
-			 $stmt->bindParam("color", $usuario->color);
-			 $stmt->bindParam("genero", $usuario->genero);
-			 $stmt->bindParam("tipo", $usuario->tipo);
+			 $stmt->bindParam("name", $user->name);
+			 $stmt->bindParam("lastname", $user->lastname);
+			 $stmt->bindParam("birthDate", $user->birthDate);
+			 $stmt->bindParam("email", $user->email);
+			 $stmt->bindParam("password", $user->password);
+			 $stmt->bindParam("color", $user->color);
+			 $stmt->bindParam("gender", $user->gender);
+			 $stmt->bindParam("type", $user->type);
 			 $stmt->execute();
-			 $usuario->id = $db->lastInsertId();
-			 echo json_encode($usuario);
+			 $user->id = $db->lastInsertId();
+			 echo json_encode($user);
 	 } catch(PDOException $e) {
 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
 	 }
 }
-//{"nombres":"nn", "apellidos":"nn","fechaNacimiento":"1984-01-28","mail":"@algo","color":"#5454545","genero":"hombre","tipo":"usuario"}
+//{"name":"nn", "lastname":"nn","birthDate":"1984-01-28","email":"@algo","password":"@password","color":"#5454545","gender":"hombre","type":"user"}
 
 
-function addNodo() {
+
+/**
+* POST /questions
+* @param Request $request
+* @return JsonResponse
+*/
+function addQuestion() {
  global $db, $request;
-	 //si estado = 1 requiere un update antes de hacer el insert
-	 $nodo = json_decode($request->getBody());
- 	 $sql = "INSERT INTO nodo (nombre, descripcion, codigo, ubicacion, pista, carreraId) VALUES (:nombre, :descripcion, :codigo, :ubicacion, :pista, :carreraId)";
+	 //si status = 1 requiere un update antes de hacer el insert
+	 $question = json_decode($request->getBody());
+ 	 $sql = "INSERT INTO question (question, answer, node_id) VALUES (:question, :answer, :node_id)";
 	 try {
 			 $stmt = $db->prepare($sql);
-			 $stmt->bindParam("nombre", $nodo->nombre);
-			 $stmt->bindParam("descripcion", $nodo->descripcion);
-			 $stmt->bindParam("codigo", $nodo->codigo);
-			 $stmt->bindParam("ubicacion", $nodo->ubicacion);
-			 $stmt->bindParam("pista", $nodo->pista);
-			 $stmt->bindParam("carreraId", $nodo->carreraId);
+			 $stmt->bindParam("question", $question->question);
+			 $stmt->bindParam("answer", $question->answer);
+			 $stmt->bindParam("node_id", $question->node_id);
 			 $stmt->execute();
-			 $nodo->id = $db->lastInsertId();
-			 echo json_encode($nodo);
+			 $question->id = $db->lastInsertId();
+			 echo json_encode($question);
 	 } catch(PDOException $e) {
 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
 	 }
 }
-//{"nombre":"nn", "descripcion":"nn","codigo":"1984-01-28","ubicacion":"@algo","pista":"#5454545","carreraId":2}
+//{"question":"nn", "answer":"nn","node_id":2}
 
-function addPregunta() {
- global $db, $request;
-	 //si estado = 1 requiere un update antes de hacer el insert
-	 $pregunta = json_decode($request->getBody());
- 	 $sql = "INSERT INTO pregunta (enunciado, respuesta, nodoId) VALUES (:enunciado, :respuesta, :nodoId)";
-	 try {
-			 $stmt = $db->prepare($sql);
-			 $stmt->bindParam("enunciado", $pregunta->enunciado);
-			 $stmt->bindParam("respuesta", $pregunta->respuesta);
-			 $stmt->bindParam("nodoId", $pregunta->nodoId);
-			 $stmt->execute();
-			 $pregunta->id = $db->lastInsertId();
-			 echo json_encode($pregunta);
-	 } catch(PDOException $e) {
-			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+
+/**
+* POST /inscriptions
+* @param Request $request
+* @return \Illuminate\Http\JsonResponse
+*/
+function addInscription() {
+global $db, $request;
+	//si status = 1 requiere un update antes de hacer el insert
+	$body = $request->getBody();
+	$inscription = json_decode($body);
+	$sql = "INSERT INTO inscription (circuit_id, user_id) VALUES (:circuit_id, :user_id)";
+	try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("circuit_id", $inscription->circuit_id);
+			$stmt->bindParam("user_id", $inscription->user_id);
+			$stmt->execute();
+			$inscription->id = $db->lastInsertId();
+			echo json_encode($inscription);
+	} catch(PDOException $e) {
+			echo '{"error":{"text":'. $e->getMessage() .'}}';
+	}
+}
+
+//{"circuit_id":1, "user_id":1}
+//{"circuit_id":1, "user_id":2}
+//{"circuit_id":2, "user_id":2}
+
+
+/**
+* POST /nodesDiscovered
+* @param Request $request
+* @return \Illuminate\Http\JsonResponse
+*/
+function addNodeDiscovered() {
+global $db, $request;
+	//si status = 1 requiere un update antes de hacer el insert
+	$nodeDiscovered = json_decode($request->getBody());
+$sql = "INSERT  INTO nodeDiscovered (node_id, user_id, status, statusDate1, statusDate2, statusDate3) VALUES (:node_id, :user_id, :status, :statusDate1, :statusDate2, :statusDate3)";
+	try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("node_id", $nodeDiscovered->node_id);
+			$stmt->bindParam("user_id", $nodeDiscovered->user_id);
+			$stmt->bindParam("status", $nodeDiscovered->status);
+			$stmt->bindParam("statusDate1", $nodeDiscovered->statusDate1);
+			$stmt->bindParam("statusDate2", $nodeDiscovered->statusDate2);
+			$stmt->bindParam("statusDate3", $nodeDiscovered->statusDate3);
+			$stmt->execute();
+			$nodeDiscovered->id = $db->lastInsertId();
+
+			echo json_encode($nodeDiscovered);
+	} catch(PDOException $e) {
+			echo '{"error":{"text":'. $e->getMessage() .'}}';
+	}
+}
+//{"node_id":1, "user_id":1,"status": 0, "statusDate1":"2016-06-10 15:32:31"}
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+* PUT /nodes/{id}
+* @param integer $id, Request $request
+* @return JsonResponse
+*/
+	 function updateNode($id) {
+	  global $db, $request;
+	 	 //si status = 1 requiere un update antes de hacer el insert
+		 $body = $request->getBody();
+     $node = json_decode($body);
+  	 $sql = "UPDATE node SET name= :name, description= :description, code= :code, latitude= :latitude, longitude= :longitude, hint= :hint, circuit_id= :circuit_id WHERE id= :id";
+	 	 try {
+	 			 $stmt = $db->prepare($sql);
+	 			 $stmt->bindParam("name", $node->name);
+	 			 $stmt->bindParam("description", $node->description);
+	 			 $stmt->bindParam("code", $node->code);
+	 			 $stmt->bindParam("latitude", $node->latitude);
+	 			 $stmt->bindParam("longitude", $node->longitude);
+	 			 $stmt->bindParam("hint", $node->hint);
+	 			 $stmt->bindParam("circuit_id", $node->circuit_id);
+				 $stmt->bindParam("id", $id);
+	 			 $stmt->execute();
+	 			 echo json_encode($node);
+	 	 } catch(PDOException $e) {
+	 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 	 }
 	 }
-}
-//{"enunciado":"nn", "respuesta":"nn","nodoId":2}
+	 //{"name":"nn", "description":"nn","code":"1984-01-28","latitude":"@algo","hint":"#5454545","circuit_id":2}
 
 
-
-
-
- function getLogin2() {
-	global $db, $request;
-    //si estado = 1 requiere un update antes de hacer el insert
-    $usuario = json_decode($request->getBody());
-	$sql = "SELECT * FROM usuario WHERE mail=:mail";
-    try {
-
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam("mail", $usuario->correo);
-
-        $stmt->execute();
-				$usuario = $stmt->fetchObject();
-
-        echo json_encode($usuario);
-    } catch(PDOException $e) {
-        echo '{"error":{"text":'. $e->getMessage() .'}}';
-    }
-}
-
-//{"correo":"jmmejia@autonoma.edu.co"}
-
-//response: false if doesn't exist, userData in other case
-function actualizarEstadoCarrera($id) {
+/**
+* PUT /circuit/{id}
+* @param integer $id, Request $request
+* @return JsonResponse
+*/
+function updateCircuit($id) {
     global $db, $request;
     $body = $request->getBody();
-    $carrera = json_decode($body);
-    $sql = "UPDATE carrera SET estado=:estado WHERE id=:id ";
+    $circuit = json_decode($body);
+    $sql = "UPDATE circuit SET name=:name, status=:status, description=:description WHERE id=:id ";
     try {
         $stmt = $db->prepare($sql);
-        $stmt->bindParam("estado", $carrera->estado);
+				$stmt->bindParam("name", $circuit->name);
+        $stmt->bindParam("status", $circuit->status);
+				$stmt->bindParam("description", $circuit->description);
         $stmt->bindParam("id", $id);
         $stmt->execute();
-        echo json_encode($carrera);
+        echo json_encode($circuit);
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
 }
-//{"estado":"0"}
+//{"name":"nn","status":1,"description":"prueba"}
+
+/**
+* PUT /users/{id}
+* @param integer $id, Request $request
+* @return JsonResponse
+*/
+function updateUser($id) {
+ global $db, $request;
+	 //si status = 1 requiere un update antes de hacer el insert
+	 $body = $request->getBody();
+	 $user = json_decode($body);
+ 	 $sql = "UPDATE user set name=:name, lastname=:lastname, birthDate=:birthDate, email=:email, password=:password, color=:color, gender=:gender, type=:type WHERE id=:id";
+	 try {
+
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("name", $user->name);
+			 $stmt->bindParam("lastname", $user->lastname);
+			 $stmt->bindParam("birthDate", $user->birthDate);
+			 $stmt->bindParam("email", $user->email);
+			 $stmt->bindParam("password", $user->password);
+			 $stmt->bindParam("color", $user->color);
+			 $stmt->bindParam("gender", $user->gender);
+			 $stmt->bindParam("type", $user->type);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 echo json_encode($user);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+//{"name":"nn", "lastname":"nn","birthDate":"1984-01-28","email":"@algo","password":"@password","color":"#5454545","gender":"hombre","type":"user"}
 
 
-//cambiar todas las carreras a un estado específico (0)
-function desactivarCarreras() {
-    global $db, $request;
-    $body = $request->getBody();
-    $carrera = json_decode($body);
-    $sql = "UPDATE carrera SET estado=:estado";
-    try {
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam("estado", $carrera->estado);
-        $stmt->execute();
-        echo json_encode($carrera);
-    } catch(PDOException $e) {
-        echo '{"error":{"text":'. $e->getMessage() .'}}';
-    }
+/**
+* PUT /questions/{id}
+* @param integer $id, Request $request
+* @return JsonResponse
+*/
+function updateQuestion($id) {
+ global $db, $request;
+   $body = $request->getBody();
+	 $question = json_decode($body);
+ 	 $sql = "UPDATE question SET question= :question, answer= :answer, node_id= :node_id WHERE id= :id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("question", $question->question);
+			 $stmt->bindParam("answer", $question->answer);
+			 $stmt->bindParam("node_id", $question->node_id);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 echo json_encode($question);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+//{"question":"nn", "answer":"nn","node_id":2}
+
+
+/**
+* PUT /inscriptions/{id}
+* @param integer $id, Request $request
+* @return JsonResponse
+*/
+function updateInscription($id) {
+global $db, $request;
+	//si status = 1 requiere un update antes de hacer el insert
+	$body = $request->getBody();
+	$inscription = json_decode($body);
+	$sql = "UPDATE inscription SET circuit_id=:circuit_id, user_id=:user_id WHERE id=:id";
+	try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("circuit_id", $inscription->circuit_id);
+			$stmt->bindParam("user_id", $inscription->user_id);
+			$stmt->bindParam("id", $id);
+			$stmt->execute();
+			echo json_encode($inscription);
+	} catch(PDOException $e) {
+			echo '{"error":{"text":'. $e->getMessage() .'}}';
+	}
 }
 
-function getCarrerasInscritas(){
- global $db, $request, $response;
- $inscripcion = json_decode($request->getBody());
+//{"circuit_id":1, "user_id":3}
+//{"circuit_id":1, "user_id":2}
+//{"circuit_id":2, "user_id":1}
 
-		 /*filtre carreras en las que el usuario se encuentra inscrito y la carrera se encuentra activa
-			*@param mail  el correo del usuario
-			*/
-		 $sql = "SELECT carrera.id, carrera.nombre FROM carrera INNER JOIN (SELECT carreraId FROM inscripcion
-						 WHERE usuarioId=:usuarioId)AS a ON carrera.id=a.carreraId WHERE carrera.estado=1";
-		 try {
-				$stmt = $db->prepare($sql);
-				$stmt->bindParam("usuarioId", $inscripcion->usuarioId);
-				$stmt->execute();
-				$inscripcion = $stmt->fetchAll(PDO::FETCH_OBJ);
-				$response->write( json_encode($inscripcion));
-		} catch(PDOException $e) {
-				echo '{"error":{"text":'. $e->getMessage() .'}}';
-		}
- }
-//{"usuarioId":1}
+
+/**
+* PUT /nodesDiscovered/{id}
+* @param integer $id, Request $request
+* @return JsonResponse
+*/
+function updateNodeDiscovered($id) {
+global $db, $request;
+	//si status = 1 requiere un update antes de hacer el insert
+	$body = $request->getBody();
+	$nodeDiscovered = json_decode($body);
+$sql = "UPDATE nodeDiscovered SET node_id=:node_id, user_id=:user_id, status=:status, statusDate1=:statusDate1, statusDate2=:statusDate2, statusDate3=:statusDate3 WHERE id=:id";
+	try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("node_id", $nodeDiscovered->node_id);
+			$stmt->bindParam("user_id", $nodeDiscovered->user_id);
+			$stmt->bindParam("status", $nodeDiscovered->status);
+			$stmt->bindParam("statusDate1", $nodeDiscovered->statusDate1);
+			$stmt->bindParam("statusDate2", $nodeDiscovered->statusDate2);
+			$stmt->bindParam("statusDate3", $nodeDiscovered->statusDate3);
+			$stmt->bindParam("id", $id);
+			$stmt->execute();
+			echo json_encode($nodeDiscovered);
+	} catch(PDOException $e) {
+			echo '{"error":{"text":'. $e->getMessage() .'}}';
+	}
+}
+//el null tiene que ir en minùsculas
+//{"node_id":1, "user_id":1,"status": 0, "statusDate1":"2016-06-10 15:32:31", "statusDate2":null, "statusDate3":null}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+* DELETE /nodes/{id}
+* @param integer $id
+* @return mixed
+*/
+function deleteNode($id){
+ global $db;
+	 $sql = "DELETE FROM node WHERE id=:id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 echo ("object deleted");
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+/**
+* DELETE /circuits/{id}
+* @param integer $id
+* @return mixed
+*/
+function deleteCircuit($id){
+ global $db;
+	 $sql = "DELETE FROM circuit WHERE id=:id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 echo ("object deleted");
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+
+/**
+* DELETE /users/{id}
+* @param integer $id
+* @return mixed
+*/
+function deleteUser($id){
+ global $db;
+	 $sql = "DELETE FROM user WHERE id=:id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 echo ("object deleted");
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+
+/**
+* DELETE /questions/{id}
+* @param integer $id
+* @return mixed
+*/
+function deleteQuestion($id){
+ global $db;
+	 $sql = "DELETE FROM question WHERE id=:id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 $question = $stmt;
+			 echo ("object deleted");
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+
+/**
+* DELETE /inscriptions/{id}
+* @param integer $id
+* @return mixed
+*/
+function deleteInscription($id){
+ global $db;
+	 $sql = "DELETE FROM inscription WHERE id=:id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 echo ("object deleted");
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+/**
+* DELETE /nodesDiscovered/{id}
+* @param integer $id
+* @return mixed
+*/
+function deleteNodeDiscovered($id){
+ global $db;
+	 $sql = "DELETE FROM nodeDiscovered WHERE id=:id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $id);
+			 $stmt->execute();
+			 echo ("object deleted");
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 $app->run();
