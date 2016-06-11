@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-06-2016 a las 08:01:50
+-- Tiempo de generación: 11-06-2016 a las 06:08:50
 -- Versión del servidor: 10.1.13-MariaDB
 -- Versión de PHP: 5.6.21
 
@@ -39,8 +39,8 @@ CREATE TABLE `carrera` (
 
 INSERT INTO `carrera` (`id`, `nombre`, `estado`, `descripcion`) VALUES
 (1, 'COSem12016', 1, 'Primera carrera de observación'),
-(2, 'carreraPrueba', 0, 'carrera prueba'),
-(3, 'PRUEBA', 1, 'CARRERA DE PRUEBA');
+(2, 'nn', 1, 'prueba'),
+(3, 'nn', 1, 'prueba');
 
 -- --------------------------------------------------------
 
@@ -49,18 +49,18 @@ INSERT INTO `carrera` (`id`, `nombre`, `estado`, `descripcion`) VALUES
 --
 
 CREATE TABLE `inscripcion` (
+  `id` int(11) NOT NULL,
   `carreraId` int(11) NOT NULL,
-  `usuarioMail` varchar(60) NOT NULL
+  `usuarioId` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Volcado de datos para la tabla `inscripcion`
 --
 
-INSERT INTO `inscripcion` (`carreraId`, `usuarioMail`) VALUES
-(1, 'jimezam@autonoma.edu.co'),
-(1, 'jmmejia@autonoma.edu.co'),
-(3, 'jmmejia@autonoma.edu.co');
+INSERT INTO `inscripcion` (`id`, `carreraId`, `usuarioId`) VALUES
+(1, 2, 1),
+(2, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -100,19 +100,20 @@ INSERT INTO `nodo` (`id`, `nombre`, `descripcion`, `codigo`, `ubicacion`, `pista
 (15, 'CENTRO DE INFORMATICA', 'CENTRO DE INFORMATICA', 'www.autonoma.edu.co/sala_de_profesores_de_ingenieria', '20,120', 'ASISTENCIA Y CONSULTARIA DE QUIENES TE ENSEÑAN EN ESTE LUGAR', 1),
 (16, 'VICERRECTORIA ACADEMICA', 'VICERRECTORIA ACADEMICA', 'www.autonoma.edu.co/centro_de_informatica', '20,120', 'LAS HERRAMIENTAS COMPUTACIONES EN ESTE PISO ENTERO ENCONTRAR', 1),
 (17, 'RECTORIA', 'RECTORIA', 'www.autonoma.edu.co/vicerrectoria_academica', '20,120', 'CUANDO PROBLEMAS ACADÉMICOS ENCUENTRES, ESTE ES EL MÁXIMO ES', 1),
-(18, 'VICERRECTORIA ADMINISTRATIVA', 'VICERRECTORIA ADMINISTRATIVA', 'www.autonoma.edu.co/rectoria', '20,120', 'DESDE ALLÍ SE DIRIGE LA UAM', 1);
+(18, 'VICERRECTORIA ADMINISTRATIVA', 'VICERRECTORIA ADMINISTRATIVA', 'www.autonoma.edu.co/rectoria', '20,120', 'DESDE ALLÍ SE DIRIGE LA UAM', 1),
+(19, 'nn', 'nn', '1984-01-28', '@algo', '#5454545', 2);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `nodo_descubierto`
+-- Estructura de tabla para la tabla `nododescubierto`
 --
 
-CREATE TABLE `nodo_descubierto` (
+CREATE TABLE `nododescubierto` (
   `id` int(11) NOT NULL,
   `nodoId` int(11) NOT NULL,
-  `usuarioMail` varchar(60) NOT NULL,
-  `estado` tinyint(1) NOT NULL,
+  `usuarioId` int(11) NOT NULL,
+  `estado` tinyint(1) NOT NULL DEFAULT '0',
   `fechaEstado1` datetime DEFAULT NULL,
   `fechaEstado2` datetime DEFAULT NULL,
   `fechaEstado3` datetime DEFAULT NULL
@@ -166,7 +167,8 @@ INSERT INTO `pregunta` (`id`, `enunciado`, `respuesta`, `nodoId`) VALUES
 (28, '¿INDICA EL NOMBRE DE LA ENCARGADA DEL CENTRO DE INFORMATICA?', 'MARTHA LILIA MORALES GONZALEZ', 15),
 (29, '¿NOMBRA AL VICERRECTOR ACADEMICO DE LA UAM?', 'IVAN ESCOBAR ESCOBAR', 16),
 (30, '¿NOMBRA AL RECTOR DE LA INSTITUCION?', 'GABRIEL CADENA GOMEZ', 17),
-(31, '¿NOMBRA AL VICERRECTOR ADMINISTRATIVO DE LA UAM?', 'CARLOS EDUARDO JARAMILLO SANINT', 18);
+(31, '¿NOMBRA AL VICERRECTOR ADMINISTRATIVO DE LA UAM?', 'CARLOS EDUARDO JARAMILLO SANINT', 18),
+(32, 'nn', 'nn', 2);
 
 -- --------------------------------------------------------
 
@@ -190,10 +192,10 @@ CREATE TABLE `usuario` (
 --
 
 INSERT INTO `usuario` (`id`, `nombres`, `apellidos`, `fechaNacimiento`, `mail`, `color`, `genero`, `tipo`) VALUES
-(3, 'asdf', 'adf', '2014-04-30', 'adf', '#000000', 'Hombre', 'Usuario'),
-(3, 'adsf', 'asdf', '2014-04-30', 'adfasf', '#000000', 'Hombre', 'Usuario'),
-(2, 'JORGE IVAN', 'MEZA MARTINEZ', '1978-04-14', 'jimezam@autonoma.edu.co', 'azul', 'hombre', 'usuario'),
-(1, 'JULIAN MAURICIO', 'MEJIA CARDONA', '1984-01-28', 'jmmejia@autonoma.edu.co', 'verde', 'hombre', 'administrador');
+(1, 'JULIAN MAURICIO', 'MEJIA CARDONA', '0000-00-00', 'jmmejia@autonoma.edu.co', 'verde', 'hombre', 'administrador'),
+(2, 'JORGE IVAN', 'MEZA MARTINEZ', '0000-00-00', 'jimezam@autonoma.edu.co', 'azul', 'hombre', 'usuario'),
+(3, 'nn', 'nn', '1984-01-28', '@algo', '#5454545', 'hombre', 'usuario'),
+(4, 'lkasjdfklj', 'lñkjlñjk', '2014-04-30', 'malicio37@gmail.com', '#18cfa6', 'Hombre', 'usuario');
 
 --
 -- Índices para tablas volcadas
@@ -209,8 +211,9 @@ ALTER TABLE `carrera`
 -- Indices de la tabla `inscripcion`
 --
 ALTER TABLE `inscripcion`
-  ADD PRIMARY KEY (`carreraId`,`usuarioMail`),
-  ADD KEY `usuarioMail` (`usuarioMail`);
+  ADD PRIMARY KEY (`id`,`carreraId`,`usuarioId`),
+  ADD KEY `carreraId` (`carreraId`),
+  ADD KEY `usuarioId` (`usuarioId`);
 
 --
 -- Indices de la tabla `nodo`
@@ -220,11 +223,12 @@ ALTER TABLE `nodo`
   ADD KEY `carreraId` (`carreraId`);
 
 --
--- Indices de la tabla `nodo_descubierto`
+-- Indices de la tabla `nododescubierto`
 --
-ALTER TABLE `nodo_descubierto`
-  ADD PRIMARY KEY (`nodoId`,`usuarioMail`),
-  ADD KEY `usuarioMail` (`usuarioMail`);
+ALTER TABLE `nododescubierto`
+  ADD PRIMARY KEY (`id`,`nodoId`,`usuarioId`),
+  ADD KEY `nodoId` (`nodoId`),
+  ADD KEY `usuarioId` (`usuarioId`);
 
 --
 -- Indices de la tabla `pregunta`
@@ -237,8 +241,43 @@ ALTER TABLE `pregunta`
 -- Indices de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  ADD PRIMARY KEY (`mail`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `mail` (`mail`);
 
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `carrera`
+--
+ALTER TABLE `carrera`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+--
+-- AUTO_INCREMENT de la tabla `inscripcion`
+--
+ALTER TABLE `inscripcion`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+--
+-- AUTO_INCREMENT de la tabla `nodo`
+--
+ALTER TABLE `nodo`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+--
+-- AUTO_INCREMENT de la tabla `nododescubierto`
+--
+ALTER TABLE `nododescubierto`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+--
+-- AUTO_INCREMENT de la tabla `pregunta`
+--
+ALTER TABLE `pregunta`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+--
+-- AUTO_INCREMENT de la tabla `usuario`
+--
+ALTER TABLE `usuario`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 --
 -- Restricciones para tablas volcadas
 --
@@ -248,7 +287,7 @@ ALTER TABLE `usuario`
 --
 ALTER TABLE `inscripcion`
   ADD CONSTRAINT `inscripcion_ibfk_1` FOREIGN KEY (`carreraId`) REFERENCES `carrera` (`id`),
-  ADD CONSTRAINT `inscripcion_ibfk_2` FOREIGN KEY (`usuarioMail`) REFERENCES `usuario` (`mail`);
+  ADD CONSTRAINT `inscripcion_ibfk_2` FOREIGN KEY (`usuarioId`) REFERENCES `usuario` (`id`);
 
 --
 -- Filtros para la tabla `nodo`
@@ -257,11 +296,11 @@ ALTER TABLE `nodo`
   ADD CONSTRAINT `nodo_ibfk_1` FOREIGN KEY (`carreraId`) REFERENCES `carrera` (`id`);
 
 --
--- Filtros para la tabla `nodo_descubierto`
+-- Filtros para la tabla `nododescubierto`
 --
-ALTER TABLE `nodo_descubierto`
-  ADD CONSTRAINT `nodo_descubierto_ibfk_1` FOREIGN KEY (`nodoId`) REFERENCES `nodo` (`id`),
-  ADD CONSTRAINT `nodo_descubierto_ibfk_2` FOREIGN KEY (`usuarioMail`) REFERENCES `usuario` (`mail`);
+ALTER TABLE `nododescubierto`
+  ADD CONSTRAINT `nododescubierto_ibfk_1` FOREIGN KEY (`nodoId`) REFERENCES `nodo` (`id`),
+  ADD CONSTRAINT `nododescubierto_ibfk_2` FOREIGN KEY (`usuarioId`) REFERENCES `usuario` (`id`);
 
 --
 -- Filtros para la tabla `pregunta`

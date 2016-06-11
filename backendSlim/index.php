@@ -68,6 +68,10 @@ $app->post('/pregunta', 'addPregunta');
 $app->post('/inscripcion', 'addInscripcion');
 $app->post('/nodoDescubierto', 'addNodoDescubierto');
 
+
+//actualizaciones completas de los elementos PUT
+
+
 //get login con los datos ocultos
 $app->post('/usuario/login', 'getLogin2');
 
@@ -277,27 +281,28 @@ function getNodo($id){
 
 
 	function addNodoDescubierto() {
-	 	global $db, $request;
-		 $nodoDescubierto = json_decode($request->getBody());
-		 $sql = "INSERT INTO nododescubierto (nodoId, usuarioId, estado, fechaEstado1, fechaEstado2, fechaEstado3) VALUES (1, 1, 0, '2016-06-10 00:00:00', NULL, NULL)";
-	 	 //$sql = "INSERT INTO nododescubierto (nodoId, usuarioId, estado, fechaEstado1, fechaEstado2, fechaEstado3) VALUES (:nodoId, :usuarioId, :estado, :fechaEstado1, :fechaEstado2, :fechaEstado3)";
+	 global $db, $request;
+		 //si estado = 1 requiere un update antes de hacer el insert
+		 $nododescubierto = json_decode($request->getBody());
+	 $sql = "INSERT  INTO nododescubierto (nodoId, usuarioId, estado, fechaEstado1, fechaEstado2, fechaEstado3) VALUES (:nodoId, :usuarioId, :estado, :fechaEstado1, :fechaEstado2, :fechaEstado3)";
 		 try {
+
 				 $stmt = $db->prepare($sql);
-				 $stmt->bindParam("nodoId", $nodoDescubierto->nodoId);
-				 $stmt->bindParam("usuarioId", $nodoDescubierto->usuarioId);
-				 $stmt->bindParam("estado", $nodoDescubierto->estado);
-				 $stmt->bindParam("fechaEstado1", $nodoDescubierto->fechaEstado1);
-				 $stmt->bindParam("fechaEstado2", $nodoDescubierto->fechaEstado2);
-				 $stmt->bindParam("fechaEstado3", $nodoDescubierto->fechaEstado3);
+				 $stmt->bindParam("nodoId", $nododescubierto->nodoId);
+				 $stmt->bindParam("usuarioId", $nododescubierto->usuarioId);
+		 	 	 $stmt->bindParam("estado", $nododescubierto->estado);
+				 $stmt->bindParam("fechaEstado1", $nododescubierto->fechaEstado1);
+				 $stmt->bindParam("fechaEstado2", $nododescubierto->fechaEstado2);
+				 $stmt->bindParam("fechaEstado3", $nododescubierto->fechaEstado3);
 				 $stmt->execute();
-				 //$nodoDescubierto->id = $db->lastInsertId();
-				 echo json_encode($nodoDescubierto);
+				 $nododescubierto->id = $db->lastInsertId();
+
+				 echo json_encode($nododescubierto);
 		 } catch(PDOException $e) {
 				 echo '{"error":{"text":'. $e->getMessage() .'}}';
 		 }
 	}
-
-//{"nodoId":1, "usuarioId":1,"estado": 0, "fechaEstado1":"2016-06-10 15:32:31", "fechaEstado2":NULL, "fechaEstado3":NULL}
+//{"nodoId":1, "usuarioId":1,"estado": 0, "fechaEstado1":"2016-06-10 15:32:31"}
 
 
  function addCarrera() {

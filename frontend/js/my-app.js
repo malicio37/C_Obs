@@ -6,7 +6,7 @@ var $$ = Dom7;
 var email='';
 var password='';
 var codigoCarrera;
-var backend='http://localhost/C_Obs/backendSlim'
+var backend='http://localhost:8080'
 // Add view
 var mainView = myApp.addView('.view-main', {
     // Because we use fixed-through navbar we can enable dynamic navbar
@@ -18,6 +18,12 @@ var mainView = myApp.addView('.view-main', {
 
 myApp.onPageInit('index2', function (page) {
   var pageContainer = $$(page.container);
+
+
+  $$.get(backend +'/users', function (data) {
+    console.log(data);
+  });
+
   pageContainer.find('.botonSiguiente').on('click', function () {
     email = pageContainer.find('input[name="email"]').val();
 
