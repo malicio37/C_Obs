@@ -5,19 +5,40 @@ var myApp = new Framework7();
 var $$ = Dom7;
 var email='';
 var password='';
+var codigoCarrera;
 var backend='http://localhost/C_Obs/backendSlim'
 // Add view
 var mainView = myApp.addView('.view-main', {
     // Because we use fixed-through navbar we can enable dynamic navbar
     dynamicNavbar: true
+
 });
 
-// Callbacks to run specific code for specific pages, for example for About page:
-myApp.onPageInit('about', function (page) {
-    // run createContentPage func after link was clicked
-    $$('.create-page').on('click', function () {
-        createContentPage();
-    });
+
+
+myApp.onPageInit('index2', function (page) {
+  var pageContainer = $$(page.container);
+  pageContainer.find('.botonSiguiente').on('click', function () {
+    email = pageContainer.find('input[name="email"]').val();
+
+    if(email== ""){
+      myApp.alert('Debe ingresar un correo válido');
+    }
+    else{
+      var params= '{"correo":"' + email + '",'+ '"password":"' + password + '"}';
+      $$.post(backend +'/usuario/login', params, function (data) {
+        if (data =='false'){
+          myApp.alert('El correo ingresado no se encuentra registrado, por favor realice el registro');
+          //cargar la página del formulario de inscripcion
+          mainView.router.loadPage("registroUsuario.html");
+        }
+        else{
+          //cargar la página de elección de la carrera a trabajar (almacenar en variable local carrera)
+          mainView.router.loadPage("login.html");
+        }
+      });
+    }
+  });
 });
 
 
@@ -25,10 +46,9 @@ myApp.onPageInit('login', function (page) {
 
   var pageContainer = $$(page.container);
   pageContainer.find('.botonLogin').on('click', function () {
-    email = pageContainer.find('input[name="email"]').val();
     password = pageContainer.find('input[name="password"]').val();
-    if(email== "" || password == ""){
-      myApp.alert('Debe ingresar todos los campos del formulario');
+    if(password == ""){
+      myApp.alert('Debe ingresar la contraseña para continuar');
     }
     else{
       var params= '{"correo":"' + email + '",'+ '"password":"' + password + '"}';
@@ -36,19 +56,15 @@ myApp.onPageInit('login', function (page) {
         if (data =='false'){
           console.log ('usuario no existe');
           //cargar la página del formulario de inscripcion
-
-
-          mainView.router.loadPage("registroUsuario.html");
+          myApp.alert('Contraseña incorrecta, intente de nuevo por favor');
+          mainView.router.loadPage("login.html");
         }
         else{
           //cargar la página de elección de la carrera a trabajar (almacenar en variable local carrera)
           mainView.router.loadPage("seleccionCarrera.html");
-
         }
       });
     }
-
-
   });
 });
 
@@ -69,15 +85,14 @@ myApp.onPageInit('registroUsuario', function (page) {
     password = pageContainer.find('input[name="password"]').val();
     var color = pageContainer.find('input[name="color"]').val();
     var genero = pageContainer.find('select[name="genero"]').val();
-    var tipo = pageContainer.find('select[name="tipo"]').val();
 
-    if(nombres == "" || apellidos =="" || fechaNacimiento == "" || mail== "" || password== "" || color == "" || genero =="" || tipo == ""){
+    if(nombres == "" || apellidos =="" || fechaNacimiento == "" || mail== "" || password== "" || color == "" || genero ==""){
       myApp.alert('Debe ingresar todos los campos del formulario');
     }
     else{
       var params= '{"id":3' + ','+ '"nombres":"' + nombres + '",' + '"apellidos":"' + apellidos + '",'+
       '"fechaNacimiento":"' + fechaNacimiento + '",' + '"mail":"' + mail + '", "password":"' + password  + '",'+ '"color":"' + color + '",'+
-      '"genero":"' + genero + '",'+ '"tipo":"' + tipo + '"}';
+      '"genero":"' + genero + '",'+ '"tipo":"usuario"}';
 
         $$.post(backend +'/usuario', params, function (data) {
         if(data.indexOf('error') > -1){
@@ -100,30 +115,29 @@ myApp.onPageInit('registroUsuario', function (page) {
 
   myApp.onPageInit('seleccionCarrera', function (page) {
     //cargar los valores de carreras previos
+    var pageContainer = $$(page.container);
     var params = '{"usuarioMail":"'+ email + '"}';
+    var selectObject= pageContainer.find('select[name="carrerasInscritas"]');
     $$.post(backend +'/carrerasInscritas', params, function (data) {
       var arreglo=JSON.parse(data);
       //console.log(arreglo[0].nombre);
       //cargar valores en el select carrerasInscritas
       for(i=0;i < Object.keys(arreglo).length; i++){
-        console.log(arreglo[i].id + ': ' +arreglo[i].nombre);
+        var opcion = document.createElement("option");
+        opcion.text = arreglo[i].nombre;
+        opcion.value = arreglo[i].id;
+        selectObject.append(opcion);
       }
-
     });
-
-
-
-    var pageContainer = $$(page.container);
-    var objeto= pageContainer.find('select[name="carrerasInscritas"]');
-
-    var opcion = document.createElement("option");
-    opcion.text = "Kiwi";
-    opcion.value = 10;
-    objeto.append(opcion);
-
-
     pageContainer.find('.botonIngresar').on('click', function () {
-        console.log('ingresando a principal');
+        codigoCarrera= pageContainer.find('select[name="carrerasInscritas"]').val();
+        $$.get(backend +'/carrera/'+codigoCarrera, params, function (data) {
+          var arreglo=JSON.parse(data);
+          document.getElementById("textoCarrera").innerHTML = arreglo.nombre;
+          pageContainer.find('a[name="textoCarrera"]').val(arreglo.nombre);
+          pageContainer.find('a[name="textoCorreo"]').val(email);
+      });
+      mainView.router.loadPage("principal.html");
     });
   });
 
@@ -132,34 +146,44 @@ myApp.onPageInit('registroUsuario', function (page) {
 
 $$(document).on('pageBeforeInit', function (e) {
 	var page = e.detail.page;
+  var params = '{"idCarrera":' + codigoCarrera + ',' + '"mail":"' + email + '"}';
     if (page.name === 'verPista') {
-		$$.get(backend + '/carrera/nodos', function (data) {
-			var test = data;
-			document.getElementById("listview").innerHTML = test;
-		});
-	};
-	if (page.name === 'verPregunta') {
+  		$$.get(backend + '/nodo', function (data) {
+        var arreglo=JSON.parse(data);
+        //console.log(arreglo[0].nombre);
+        //cargar valores en el select carrerasInscritas
+        var test="";
+        for(i=0;i < Object.keys(arreglo).length; i++){
+          test+= arreglo[i].pista;
+          test+='<br><br>';
+        }
+  			document.getElementById("listview").innerHTML = test;
+  		});
+  	};
+  	if (page.name === 'verPregunta') {
 
-	};
-	if (page.name === 'responder') {
+  	};
+  	if (page.name === 'responder') {
 
-	};
-	if (page.name === 'verPuntuacion') {
+  	};
+  	if (page.name === 'verPuntuacion') {
 
-	};
-	if (page.name === 'estadoCompetencia') {
+  	};
+  	if (page.name === 'estadoCompetencia') {
 
-	};
-	if (page.name === 'verMapa') {
+  	};
+  	if (page.name === 'verMapa') {
 
-	};
+  	};
 
 });
 
 
 function signOut() {
+  email='';
+  password='';
+  codigoCarrera=null;
   mainView.router.loadPage("index.html");
-
 };
 
 /*
