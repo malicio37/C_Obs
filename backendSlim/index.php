@@ -51,57 +51,13 @@ $app->get('/', function() {
 ////////////////////////////////////////////////////////////////////////////////
 // Business logic API
 //get login con los datos ocultos
-$app->post('/users/login', 'getLogin2');
+$app->post('/users/email', 'getLogin');
+$app->post('/users/passwd', 'getLogin2');
 
 /*filtre carreras en las que el usuario se encuentra inscrito y la carrera se encuentra activa
  *@param email  el email del usuario
  */
-$app->post('/circuitosInscritos', 'getCircuitInscripted');
-
-
-
-function getCircuitInscripted(){
- global $db, $request, $response;
- $inscription = json_decode($request->getBody());
-
-		 /*filtre carreras en las que el user se encuentra inscrito y la carrera se encuentra activa
-			*@param email  el email del user
-			*/
-		 $sql = "SELECT circuit.id, circuit.name FROM circuit INNER JOIN (SELECT circuit_id FROM inscription
-						 WHERE user_id=:user_id)AS a ON circuit.id=a.circuit_id WHERE circuit.status=1";
-		 try {
-				$stmt = $db->prepare($sql);
-				$stmt->bindParam("user_id", $inscription->user_id);
-				$stmt->execute();
-				$inscription = $stmt->fetchAll(PDO::FETCH_OBJ);
-				$response->write( json_encode($inscription));
-		} catch(PDOException $e) {
-				echo '{"error":{"text":'. $e->getMessage() .'}}';
-		}
- }
-
-//{"user_id":1}
-
- function getLogin2() {
-	global $db, $request;
-    //si status = 1 requiere un update antes de hacer el insert
-    $user = json_decode($request->getBody());
-	$sql = "SELECT * FROM user WHERE email=:email";
-    try {
-
-        $stmt = $db->prepare($sql);
-        $stmt->bindParam("email", $user->email);
-
-        $stmt->execute();
-				$user = $stmt->fetchObject();
-
-        echo json_encode($user);
-    } catch(PDOException $e) {
-        echo '{"error":{"text":'. $e->getMessage() .'}}';
-    }
-}
-
-//{"email":"jmmejia@autonoma.edu.co"}
+$app->post('/inscriptions/user', 'getCircuitInscripted');
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +110,66 @@ $app->delete('/nodesdiscovered/:id', 'deleteNodeDiscovered');
 
 ////////////////////////////////////////////////////////////////////////////////
 
+function getLogin() {
+ global $db, $request;
+	 //si status = 1 requiere un update antes de hacer el insert
+	 $user = json_decode($request->getBody());
+ 	 $sql = "SELECT email FROM user WHERE email=:email";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("email", $user->email);
+			 $stmt->execute();
+			 $user = $stmt->fetchObject();
+			 echo json_encode($user);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+//{"email":"jmmejia@autonoma.edu.co"}
+
+ function getLogin2() {
+	global $db, $request;
+    //si status = 1 requiere un update antes de hacer el insert
+    $user = json_decode($request->getBody());
+	$sql = "SELECT id FROM user WHERE email=:email AND password=MD5(:password)";
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam("email", $user->email);
+				$stmt->bindParam("password", $user->password);
+        $stmt->execute();
+				$user = $stmt->fetchObject();
+        echo json_encode($user);
+    } catch(PDOException $e) {
+        echo '{"error":{"text":'. $e->getMessage() .'}}';
+    }
+}
+
+//{"email":"jmmejia@autonoma.edu.co", "password":"123"}
+
+
+function getCircuitInscripted(){
+ global $db, $request, $response;
+ $inscription = json_decode($request->getBody());
+		 /*filtre carreras en las que el user se encuentra inscrito y la carrera se encuentra activa
+			*@param email  el email del user
+			*/
+		 $sql = "SELECT circuit.id, circuit.name FROM circuit INNER JOIN (SELECT circuit_id FROM inscription
+						 WHERE user_id=:user_id)AS a ON circuit.id=a.circuit_id WHERE circuit.status=1";
+		 try {
+				$stmt = $db->prepare($sql);
+				$stmt->bindParam("user_id", $inscription->user_id);
+				$stmt->execute();
+				$inscription = $stmt->fetchAll(PDO::FETCH_OBJ);
+				$response->write( json_encode($inscription));
+		} catch(PDOException $e) {
+				echo '{"error":{"text":'. $e->getMessage() .'}}';
+		}
+ }
+//{"user_id":1}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 
 /**
 * GET /nodes
@@ -439,7 +455,7 @@ function addUser() {
  global $db, $request;
 	 //si status = 1 requiere un update antes de hacer el insert
 	 $user = json_decode($request->getBody());
- $sql = "INSERT  INTO user (name, lastname, birthDate, email, password, color, gender, type) VALUES (:name, :lastname, :birthDate, :email, :password,:color, :gender, :type)";
+ $sql = "INSERT  INTO user (name, lastname, birthDate, email, password, color, gender, type) VALUES (:name, :lastname, :birthDate, :email, MD5(:password),:color, :gender, :type)";
 	 try {
 
 			 $stmt = $db->prepare($sql);
