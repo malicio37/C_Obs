@@ -162,6 +162,16 @@ myApp.onPageInit('principal2', function (page) {
   });
 });
 
+myApp.onPageInit('verPista', function (page) {
+  var pageContainer = $$(page.container);
+  var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
+  //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
+  $$.post(backend +'/nodes/showhint',params, function (data) {
+    var arreglo=JSON.parse(data);
+    console.log(data);
+  });
+});
+
 
 /*
 $$(document).on('pageInit', function (e) {

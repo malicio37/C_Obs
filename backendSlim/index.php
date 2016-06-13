@@ -60,6 +60,20 @@ $app->post('/users/passwd', 'getLogin2');
 $app->post('/inscriptions/user', 'getCircuitInscripted');
 
 
+/*
+ * Mostrar las pistas activas de usuario en la carrera especificada
+ */
+$app->post('/nodes/showhint', 'getNodesHints');
+
+
+
+/*
+ * Filtrar todos los nodos que corresponden a la carrera que aùn no han sido visitados por el usuario
+ * @param  user_id   el id del usuario
+ * @param  circuit_id  el id de la carrera
+ */
+ $app->post('/nodesdiscovered/nodes', 'getNotVisitedNodes');
+
 ////////////////////////////////////////////////////////////////////////////////
 // Nodes
 $app->get('/nodes', 'getNodes');
@@ -110,6 +124,11 @@ $app->delete('/nodesdiscovered/:id', 'deleteNodeDiscovered');
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/**
+* POST /users/email
+* @param email $email
+* @return mixed
+*/
 function getLogin() {
  global $db, $request;
 	 //si status = 1 requiere un update antes de hacer el insert
@@ -127,6 +146,14 @@ function getLogin() {
 }
 //{"email":"jmmejia@autonoma.edu.co"}
 
+
+
+/**
+* POST /users/passwd
+* @param email $email
+* @param password $password
+* @return mixed
+*/
  function getLogin2() {
 	global $db, $request;
     //si status = 1 requiere un update antes de hacer el insert
@@ -147,6 +174,12 @@ function getLogin() {
 //{"email":"jmmejia@autonoma.edu.co", "password":"123"}
 
 
+
+/**
+* POST /inscriptions/user
+* @param user_id $user_id
+* @return mixed
+*/
 function getCircuitInscripted(){
  global $db, $request, $response;
  $inscription = json_decode($request->getBody());
@@ -168,6 +201,56 @@ function getCircuitInscripted(){
 //{"user_id":1}
 
 
+/**
+* POST /nodesdiscovered/nodes
+* @param user_id $user_id
+* @param circuit_id $circuit_id
+* @return mixed
+*/
+function getNotVisitedNodes(){
+ global $db, $request, $response;
+ $inscription = json_decode($request->getBody());
+		/*filtre carreras en las que el user se encuentra inscrito y la carrera se encuentra activa
+		 *@param email  el email del user
+		 */
+		$sql = "SELECT node.id FROM node WHERE node.id NOT IN (SELECT nodediscovered.node_id FROM nodediscovered
+						WHERE node.circuit_id= :circuit_id AND nodediscovered.user_id=:user_id) AND node.circuit_id=:circuit_id";
+		try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("user_id", $inscription->user_id);
+			 $stmt->bindParam("circuit_id", $inscription->circuit_id);
+			 $stmt->execute();
+			 $nodes = $stmt->fetchAll(PDO::FETCH_OBJ);
+			 $response->write( json_encode($nodes));
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+ }
+//{"user_id":1, "circuit_id":1}
+
+/**
+* POST /nodes/showhint
+* @param integer $user_id
+* @param integer $circuit_id
+* @return mixed
+*/
+function getNodesHints(){
+	global $db, $request;
+		 $hint = json_decode($request->getBody());
+		 $sql = "SELECT n.hint FROM node n JOIN (SELECT * FROM nodediscovered d WHERE d.user_id=:user_id AND d.status= 0) AS t
+		 ON n.id= t.node_id WHERE n.circuit_id=:circuit_id";
+     try {
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam("user_id", $hint ->user_id);
+				$stmt->bindParam("circuit_id", $hint->circuit_id);
+        $stmt->execute();
+        $hint = $stmt->fetchAll(PDO::FETCH_OBJ);
+        echo json_encode($hint);
+    } catch(PDOException $e) {
+        echo '{"error":{"text":'. $e->getMessage() .'}}';
+    }
+ }
+//{"user_id":1, "circuit_id":}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -401,12 +484,12 @@ function getQuestion($id){
 	  global $db, $request;
 	 	 //si status = 1 requiere un update antes de hacer el insert
 	 	 $node = json_decode($request->getBody());
-	  	 $sql = "INSERT INTO node (name, description, code, latitude, longitude, hint, circuit_id) VALUES (:name, :description, :code, :latitude, :longitude, :hint, :circuit_id)";
+	  	 $sql = "INSERT INTO node (name, description, code, latitude, longitude, hint, circuit_id) VALUES (:name, :description, SHA(:name), :latitude, :longitude, :hint, :circuit_id)";
 	 	 try {
 	 			 $stmt = $db->prepare($sql);
 	 			 $stmt->bindParam("name", $node->name);
 	 			 $stmt->bindParam("description", $node->description);
-	 			 $stmt->bindParam("code", $node->code);
+	 			 //$stmt->bindParam("code", $node->code);
 	 			 $stmt->bindParam("latitude", $node->latitude);
 	 			 $stmt->bindParam("longitude", $node->longitude);
 	 			 $stmt->bindParam("hint", $node->hint);
