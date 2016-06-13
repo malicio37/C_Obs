@@ -200,11 +200,12 @@ $$(document).on('pageInit', function (e) {
 */
 
 function signOut() {
+  user='';
   email='';
-  password='';
-  circuit=null;
+  circuit='';
   mainView.router.loadPage("index.html");
 };
+
 
 /*
         myApp.alert('Email: ' + email + ', Password: ' + password, function () {
