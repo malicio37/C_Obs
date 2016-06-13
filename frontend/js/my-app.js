@@ -140,6 +140,7 @@ myApp.onPageInit('registroUsuario', function (page) {
           myApp.alert('No tiene carreras inscritas, solicite su inscripción al administrador');
         }
         else{
+
           //$$.get(backend +'/circuits/'+circuit, function (data) {
           //var arreglo=JSON.parse(data);
           //document.getElementById("textoCarrera").innerHTML = arreglo.nombre;
@@ -156,7 +157,7 @@ myApp.onPageInit('principal2', function (page) {
   //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
   $$.get(backend +'/circuits/'+circuit, function (data) {
     var arreglo=JSON.parse(data);
-    document.getElementById("circuitName").innerHTML = "Carrera: " + arreglo[0].name;
+    document.getElementById("circuitName").innerHTML = "Carrera: " +arreglo.name;
     document.getElementById("userMail").innerHTML = "Usuario: " + email;
     //pageContainer.find('a[name="textoCarrera"]').val(arreglo[0].name);
   });
@@ -169,6 +170,11 @@ myApp.onPageInit('verPista', function (page) {
   $$.post(backend +'/nodes/showhint',params, function (data) {
     var arreglo=JSON.parse(data);
     console.log(data);
+    var test="";
+    for(i=0;i < Object.keys(arreglo).length; i++){
+      test+= arreglo[i].hint + '<br><br>';
+    }
+    document.getElementById("listview").innerHTML = test;
   });
 });
 

@@ -63,7 +63,7 @@ $app->post('/inscriptions/user', 'getCircuitInscripted');
 /*
  * Mostrar las pistas activas de usuario en la carrera especificada
  */
-$app->post('/nodes/showhint', 'getNodesHints');
+$app->post('/nodes/showhint', 'getUserHints');
 
 
 
@@ -85,7 +85,7 @@ $app->delete('/nodes/:id', 'deleteNode');
 ////////////////////////////////////////////////////////////////////////////////
 // Circuits
 $app->get('/circuits', 'getCircuits');
-$app->get('/circuits/:id', 'getCircuits');
+$app->get('/circuits/:id', 'getCircuit');
 $app->post('/circuits', 'addCircuit');
 $app->put('/circuits/:id', 'updateCircuit');
 $app->delete('/circuits/:id', 'deleteCircuit');
@@ -234,7 +234,7 @@ function getNotVisitedNodes(){
 * @param integer $circuit_id
 * @return mixed
 */
-function getNodesHints(){
+function getUserHints(){
 	global $db, $request;
 		 $hint = json_decode($request->getBody());
 		 $sql = "SELECT n.hint FROM node n JOIN (SELECT * FROM nodediscovered d WHERE d.user_id=:user_id AND d.status= 0) AS t
