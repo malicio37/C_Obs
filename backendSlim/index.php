@@ -89,7 +89,7 @@ $app->post('/nodes/showquestion', 'getUserQuestions');
 	 * Filtrar todos las preguntas de un nodo especìfico
 	 * @param  node_id   el id del nodo
 	 */
-	 $app->get('/questions/node/:id', 'getQuestionsNode');
+	 $app->get('/questions/node/:id', 'getNodeQuestions');
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -331,7 +331,7 @@ function getUserQuestions(){
 * @param integer $id
 * @return mixed
 */
-function getQuestionsNode($node_id){
+function getNodeQuestions($node_id){
  global $db, $response;
 		$sql = "SELECT * FROM question WHERE node_id=:node_id";
 		try {
