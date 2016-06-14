@@ -66,7 +66,7 @@ $app->post('/inscriptions/user', 'getCircuitInscripted');
 $app->post('/nodes/showhint', 'getUserHints');
 
 /*
- * Mostrar las pistas activas de usuario en la carrera especificada
+ * Mostrar las preguntas activas de usuario en la carrera especificada
  */
 $app->post('/nodes/showquestion', 'getUserQuestions');
 
@@ -284,7 +284,7 @@ function getVisitedNodes(){
 function getUserHints(){
 	global $db, $request;
 		 $hint = json_decode($request->getBody());
-		 $sql = "SELECT n.hint FROM node n JOIN (SELECT * FROM nodediscovered d WHERE d.user_id=:user_id AND d.status= 0) AS t
+		 $sql = "SELECT n.id, n.hint FROM node n JOIN (SELECT * FROM nodediscovered d WHERE d.user_id=:user_id AND d.status= 0) AS t
 		 ON n.id= t.node_id WHERE n.circuit_id=:circuit_id";
      try {
         $stmt = $db->prepare($sql);
@@ -309,8 +309,9 @@ function getUserHints(){
 function getUserQuestions(){
 	global $db, $request;
 		 $question = json_decode($request->getBody());
-		 $sql = "SELECT n.id FROM node n JOIN (SELECT * FROM nodediscovered d WHERE d.user_id=:user_id AND d.status= 1) AS t
-		 ON n.id= t.node_id WHERE n.circuit_id=:circuit_id";
+		 $sql = "SELECT question.id, question.question from question INNER JOIN nodediscovered ON
+		 question.id=nodediscovered.question_id INNER JOIN node on node.id=nodediscovered.node_id WHERE
+		 node.circuit_id=:circuit_id AND nodediscovered.user_id=:user_id AND nodediscovered.status = 1";
      try {
         $stmt = $db->prepare($sql);
         $stmt->bindParam("user_id", $question ->user_id);

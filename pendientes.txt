@@ -1,5 +1,1 @@
 no se puede dejar matricular dos veces la misma carrera, eso depende de la interfaz de administración
-
-el hint no puede ser de mas de 240 caracteres
-
-lo mismo con el nombre no mayor a 60

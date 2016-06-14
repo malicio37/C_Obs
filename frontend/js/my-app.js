@@ -185,8 +185,6 @@ function genDiscoveredNode(){
       var pregunta=Math.floor(Math.random() * quests);
       params='{"node_id":'+ arreglo[nodo].id + ', "user_id":'+ user +',"question_id":' + arreglo2[pregunta].id + ', "status": ' + 0 + ', " statusDate1" : "'+ getActualDateTime() +'", "statusDate2" : null, "statusDate3": null}';
       $$.post(backend +'/nodesdiscovered',params, function (data3) {
-        console.log(params);
-        console.log(data3);
         console.log("primera pista generada!!");
       });
     });
@@ -233,19 +231,64 @@ myApp.onPageInit('verPregunta', function (page) {
   //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
   $$.post(backend +'/nodes/showquestion',params, function (data) {
     var arreglo=JSON.parse(data);
-    console.log(data);
     if(Object.keys(arreglo).length==0){
       myApp.alert('No tiene preguntas disponibles');
     }
     else{
       var test="";
       for(i=0;i < Object.keys(arreglo).length; i++){
-        test+= arreglo[i].hint + '<br><br>';
+        test+= arreglo[i].question + '<br><br>';
       }
       document.getElementById("listaPreguntas").innerHTML = test;
     }
   });
 });
+
+myApp.onPageInit('responder', function (page) {
+  //cargar los valores de carreras previos
+  var pageContainer = $$(page.container);
+  var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
+  var selectObject= pageContainer.find('select[name="preguntas"]');
+  $$.post(backend +'/nodes/showquestion',params, function (data) {
+    if(data=="[]"){
+      myApp.alert('No tiene preguntas pendientes de respuesta');
+    }
+    else{
+      var arreglo=JSON.parse(data);
+      //cargar valores en el select carrerasInscritas
+      for(i=0;i < Object.keys(arreglo).length; i++){
+        var opcion = document.createElement("option");
+        opcion.text = arreglo[i].question;
+        opcion.value = arreglo[i].id;
+        selectObject.append(opcion);
+      }
+    }
+  });
+
+  pageContainer.find('.botonResponder').on('click', function () {
+      question= pageContainer.find('select[name="preguntas"]').val();
+
+      //tomar valor del campo respuesta
+      //cambiar el estado a mayusculas fijas y sin tildes
+      //validar la respuesta
+      //si es errornea alert con respuesta incorrecta
+      //si està ok, put a estado 2 y generar nueva pista
+      if(question==""){
+        myApp.alert('No tiene preguntas que contestar, debe encontrar un nodo antes');
+      }
+      else{
+        //$$.get(backend +'/circuits/'+circuit, function (data) {
+        //var arreglo=JSON.parse(data);
+        //document.getElementById("textoCarrera").innerHTML = arreglo.nombre;
+        //pageContainer.find('a[name="textoCarrera"]').val(arreglo.nombre);
+        //pageContainer.find('a[name="textoCorreo"]').val(email);
+      //});
+      mainView.router.loadPage("principal.html");
+      }
+  });
+});
+
+
 
 /*
 $$(document).on('pageInit', function (e) {
@@ -289,17 +332,3 @@ function signOut() {
   circuit='';
   mainView.router.loadPage("index.html");
 };
-
-
-/*
-        myApp.alert('Email: ' + email + ', Password: ' + password, function () {
-          mainView.goBack();
-        });
-*/
-/*
-     metodo para hacer get con parametros
-    console.log(backend+'/mensajeria/usuario/' + email);
-    $$.get(backend+'/mensajeria/usuario/' + email, function (data) {
-      console.log (data);
-		});
-*/
