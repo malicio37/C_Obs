@@ -3,7 +3,7 @@ CREATE TABLE circuit(
     id          int         NOT NULL AUTO_INCREMENT,
     name      VARCHAR(30) NOT NULL ,
     status      tinyint(1)  NOT NULL ,
-    description VARCHAR(60),
+    description VARCHAR(240),
     PRIMARY KEY (id)
 );
 
@@ -47,23 +47,8 @@ CREATE TABLE node(
     circuit_id     int         NOT NULL ,
     PRIMARY KEY (id),
     FOREIGN KEY (circuit_id)
-    REFERENCES circuit(id)
-);
-
-DROP TABLE IF EXISTS nodeDiscovered;
-CREATE TABLE nodeDiscovered(
-    id            int         NOT NULL AUTO_INCREMENT,
-    node_id        int         NOT NULL ,
-    user_id     int         NOT NULL ,
-    status        tinyint(1)  NOT NULL ,
-    statusDate1  DATETIME,
-    statusDate2  DATETIME,
-    statusDate3  DATETIME,
-    PRIMARY KEY (id, node_id, user_id),
-    FOREIGN KEY (node_id)
-    REFERENCES node(id),
-    FOREIGN KEY (user_id)
-    REFERENCES user(id)
+    REFERENCES circuit(id),
+    UNIQUE (code)
 );
 
 DROP TABLE IF EXISTS question;
@@ -77,31 +62,57 @@ CREATE TABLE question(
     REFERENCES node(id)
 );
 
+DROP TABLE IF EXISTS nodeDiscovered;
+CREATE TABLE nodeDiscovered(
+    id            int         NOT NULL AUTO_INCREMENT,
+    node_id        int         NOT NULL ,
+    user_id     int         NOT NULL ,
+    question_id     int         NOT NULL ,
+    status        tinyint(1)  NOT NULL ,
+    statusDate1  DATETIME,
+    statusDate2  DATETIME,
+    statusDate3  DATETIME,
+    PRIMARY KEY (id, node_id, user_id),
+    FOREIGN KEY (node_id)
+    REFERENCES node(id),
+    FOREIGN KEY (user_id)
+    REFERENCES user(id),
+    FOREIGN KEY (question_id)
+    REFERENCES question(id)
+);
+
+
+
 
 INSERT  INTO circuit (name, status, description) VALUES ('COSem12016', 1,'Primera carrera de observación');
+INSERT  INTO circuit (name, status, description) VALUES ('Intersemestral2016', 1,'carrera de observación intersemestral');
 
 INSERT  INTO user (name, lastname, birthDate, email, password, color, gender, type) VALUES ('JULIAN MAURICIO', 'MEJIA CARDONA', '1984-01-28', 'jmmejia@autonoma.edu.co', MD5('123'), 'verde', 'hombre','administrador');
 INSERT  INTO user (name, lastname, birthDate, email, password, color, gender, type) VALUES ('JORGE IVAN', 'MEZA MARTINEZ', '1978-04-14', 'jimezam@autonoma.edu.co', MD5('123'), 'azul', 'hombre','usuario');
 
 
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'BIBLIOTECA', 'BIBLIOTECA', SHA('BIBLIOTECA'), '20','120', 'SILENCIO, ESPACIO Y CONOCIMIENTO ENCONTRARAS EN ESTE LUGAR', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'CAJA', 'CAJA', SHA('CAJA'), '20','120', 'AQUÍ TU SEMESTRE Y LIBROS HAS DE PAGAR', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'REGISTRO ACADEMICO', 'REGISTRO ACADEMICO', SHA('REGISTRO ACADEMICO'), '20','120', 'EN ESTE LUGAR EL PROCESO DE INSCRIPCION ACENTARAS', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'MERCADEO', 'MERCADEO', SHA('MERCADEO'), '20','120', 'SUS ENCARGADOS LA OFERTA ACADEMICA Y AYUDA ADMINISTRATIVA TE OFRECERAN', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'RELACIONES INTERNACIONALES', 'RELACIONES INTERNACIONALES', SHA('RELACIONES INTERNACIONALES'), '20','120', 'SI UN INTERCAMBIO QUIERES HACER A ESTE LUGAR DEBES LLEGAR', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'CARTERA', 'CARTERA', SHA('CARTERA'), '20','120', 'PLAZOS DE FINANCIAMIENTO Y OPCIONES A PROBLEMAS ECONOMICAS ACA TE DARAN', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'DESARROLLO HUMANO', 'DESARROLLO HUMANO', SHA('DESARROLLO HUMANO'), '20','120', 'SUS ENCARGADOS VELAN POR TU BIENESTAR MENTAL Y PSICOLOGICO, ADEMAS DE AYUDA CON DIFICULTADES ACADEMICAS', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'SERVICIOS MEDICOS', 'SERVICIOS MEDICOS', SHA('SERVICIOS MEDICOS'), '20','120', 'EN ESTE SITIO ENCONTRARAS UN MEDICO QUE TE PUEDE INDICAR QUE TRATAMIENTO TOMAR', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'ATENCION PREHOSPITALARIA', 'ATENCION PREHOSPITALARIA', SHA('ATENCION PREHOSPITALARIA'), '20','120', 'SI TE SIENTES FISICAMENTE MAL EN ESTE LUGAR UNA PERSONA PROFESIONAL TE ATENDERA', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'LABORATORIO ELECTRONICA', 'LABORATORIO ELECTRONICA', SHA('LABORATORIO ELECTRONICA'), '20','120', 'LOS MONTAJES ELECTRONICOS Y EXPERIMENTOS FISICOS EN ESTE LUGAR DESARROLLARAS', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'GIMNASIO', 'GIMNASIO', SHA('GIMNASIO'), '20','120', 'ALLI EJERCICIO, JUGAR Y LIBERAR TENSION PUEDES REALIZAR', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'GESTION DE TECNOLOGIA', 'GESTION DE TECNOLOGIA', SHA('GESTION DE TECNOLOGIA'), '20','120', 'UNA FORMA DIFERENTE DE COMUNICARTE ALLI APRENDERAS', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'DECANATURA INGENIERIA', 'DECANATURA INGENIERIA', SHA('DECANATURA INGENIERIA'), '20','120', 'OLVIDO DE CONTRASEÑAS Y PROBLEMAS DE INGRESO A LOS SISTEMAS AQUÍ TE SOLUCIONARAN', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'SALA DE PROFESORES DE INGENIERIA', 'SALA DE PROFESORES DE INGENIERIA', SHA('SALA DE PROFESORES DE INGENIERIA'), '20','120', 'LOS PROCESOS ACADEMICOS DESDE ALLÍ SE GOBERNARAN', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'CENTRO DE INFORMATICA', 'CENTRO DE INFORMATICA', SHA('CENTRO DE INFORMATICA'), '20','120', 'ASISTENCIA Y CONSULTARIA DE QUIENES TE ENSEÑAN EN ESTE LUGAR TENDRAS', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'VICERRECTORIA ACADEMICA', 'VICERRECTORIA ACADEMICA', SHA('VICERRECTORIA ACADEMICA'), '20','120', 'LAS HERRAMIENTAS COMPUTACIONES EN ESTE PISO ENTERO ENCONTRARAS', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'RECTORIA', 'RECTORIA', SHA('RECTORIA'), '20','120', 'CUANDO PROBLEMAS ACADÉMICOS ENCUENTRES, ESTE ES EL MÁXIMO ESTAMENTO A CONSULTAR', 1);
-INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'VICERRECTORIA ADMINISTRATIVA', 'VICERRECTORIA ADMINISTRATIVA', SHA('VICERRECTORIA ADMINISTRATIVA'), '20','120', 'DESDE ALLÍ SE DIRIGE LA UAM', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'BIBLIOTECA', 'BIBLIOTECA', RAND(), '20','120', 'SILENCIO, ESPACIO Y CONOCIMIENTO ENCONTRARAS EN ESTE LUGAR', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'CAJA', 'CAJA', RAND(), '20','120', 'AQUÍ TU SEMESTRE Y LIBROS HAS DE PAGAR', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'REGISTRO ACADEMICO', 'REGISTRO ACADEMICO', RAND(), '20','120', 'EN ESTE LUGAR EL PROCESO DE INSCRIPCION ACENTARAS', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'MERCADEO', 'MERCADEO', RAND(), '20','120', 'SUS ENCARGADOS LA OFERTA ACADEMICA Y AYUDA ADMINISTRATIVA TE OFRECERAN', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'RELACIONES INTERNACIONALES', 'RELACIONES INTERNACIONALES', RAND(), '20','120', 'SI UN INTERCAMBIO QUIERES HACER A ESTE LUGAR DEBES LLEGAR', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'CARTERA', 'CARTERA', RAND(), '20','120', 'PLAZOS DE FINANCIAMIENTO Y OPCIONES A PROBLEMAS ECONOMICAS ACA TE DARAN', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'DESARROLLO HUMANO', 'DESARROLLO HUMANO', RAND(), '20','120', 'SUS ENCARGADOS VELAN POR TU BIENESTAR MENTAL Y PSICOLOGICO, ADEMAS DE AYUDA CON DIFICULTADES ACADEMICAS', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'SERVICIOS MEDICOS', 'SERVICIOS MEDICOS', RAND(), '20','120', 'EN ESTE SITIO ENCONTRARAS UN MEDICO QUE TE PUEDE INDICAR QUE TRATAMIENTO TOMAR', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'ATENCION PREHOSPITALARIA', 'ATENCION PREHOSPITALARIA', RAND(), '20','120', 'SI TE SIENTES FISICAMENTE MAL EN ESTE LUGAR UNA PERSONA PROFESIONAL TE ATENDERA', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'LABORATORIO ELECTRONICA', 'LABORATORIO ELECTRONICA', RAND(), '20','120', 'LOS MONTAJES ELECTRONICOS Y EXPERIMENTOS FISICOS EN ESTE LUGAR DESARROLLARAS', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'GIMNASIO', 'GIMNASIO', RAND(), '20','120', 'ALLI EJERCICIO, JUGAR Y LIBERAR TENSION PUEDES REALIZAR', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'GESTION DE TECNOLOGIA', 'GESTION DE TECNOLOGIA', RAND(), '20','120', 'UNA FORMA DIFERENTE DE COMUNICARTE ALLI APRENDERAS', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'DECANATURA INGENIERIA', 'DECANATURA INGENIERIA', RAND(), '20','120', 'OLVIDO DE CONTRASEÑAS Y PROBLEMAS DE INGRESO A LOS SISTEMAS AQUÍ TE SOLUCIONARAN', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'SALA DE PROFESORES DE INGENIERIA', 'SALA DE PROFESORES DE INGENIERIA', RAND(), '20','120', 'LOS PROCESOS ACADEMICOS DESDE ALLÍ SE GOBERNARAN', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'CENTRO DE INFORMATICA', 'CENTRO DE INFORMATICA', RAND(), '20','120', 'ASISTENCIA Y CONSULTARIA DE QUIENES TE ENSEÑAN EN ESTE LUGAR TENDRAS', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'VICERRECTORIA ACADEMICA', 'VICERRECTORIA ACADEMICA', RAND(), '20','120', 'LAS HERRAMIENTAS COMPUTACIONES EN ESTE PISO ENTERO ENCONTRARAS', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'RECTORIA', 'RECTORIA', RAND(), '20','120', 'CUANDO PROBLEMAS ACADÉMICOS ENCUENTRES, ESTE ES EL MÁXIMO ESTAMENTO A CONSULTAR', 1);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'VICERRECTORIA ADMINISTRATIVA', 'VICERRECTORIA ADMINISTRATIVA', RAND(), '20','120', 'DESDE ALLÍ SE DIRIGE LA UAM', 1);
+
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'BIBLIOTECA2', 'BIBLIOTECA', RAND(), '20','120', 'SILENCIO, ESPACIO Y CONOCIMIENTO ENCONTRARAS EN ESTE LUGAR', 2);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'CAJA2', 'CAJA', RAND(), '20','120', 'AQUÍ TU SEMESTRE Y LIBROS HAS DE PAGAR', 2);
+INSERT  INTO node (name, description,code, latitude, longitude, hint, circuit_id) VALUES ( 'REGISTRO ACADEMICO2', 'REGISTRO ACADEMICO', RAND(), '20','120', 'EN ESTE LUGAR EL PROCESO DE INSCRIPCION ACENTARAS', 2);
 
 
 
@@ -136,3 +147,14 @@ INSERT  INTO question (question, answer, node_id) VALUES ( '¿INDICA EL NOMBRE D
 INSERT  INTO question (question, answer, node_id) VALUES ( '¿NOMBRA AL VICERRECTOR ACADEMICO DE LA UAM?', 'IVAN ESCOBAR ESCOBAR', 16);
 INSERT  INTO question (question, answer, node_id) VALUES ( '¿NOMBRA AL RECTOR DE LA INSTITUCION?', 'GABRIEL CADENA GOMEZ', 17);
 INSERT  INTO question (question, answer, node_id) VALUES ( '¿NOMBRA AL VICERRECTOR ADMINISTRATIVO DE LA UAM?', 'CARLOS EDUARDO JARAMILLO SANINT', 18);
+
+
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'WBEIMAR CANO RESTREPO', 19);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿CUÁL ES EL NOMBRE DE LA ZONA EN QUE ENCONTRARÁS REVISTAS ESPECIALIZADAS?', 'HEMEROTECA', 19);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿CUÁL ES EL NOMBRE DE LA SALA DE CONSULTA ELECTRÓNICA?', 'TELEMATICA', 19);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿CUÁL ES EL NOMBRE DE LA SALA DONDE VIDEOS Y PELÍCULAS PUEDES ENCONTRAR?', 'VIDEOTECA', 19);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿QUÉ BASE DE DATOS PUEDES CONSULTAR SI DIRECTAMENTE ARTÍCULOS CIENTÍFICOS QUIERES ENCONTRAR?', 'SCIENCE DIRECT', 19);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿CUÁL ES EL NOMBRE DE LA PERSONA QUE SIEMPRE ENCUENTRAS EN ESTE LUGAR?', 'JHON JAMES LOPEZ', 20);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿ADEMÁS DE LA MATRÍCULA ESTOS ELEMENTOS DE ESTUDIO ACÁ PUEDES PAGAR PARA LUEGO EN EL ALMACÉN RECLAMAR?', 'LIBROS', 20);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'YHON HENRY BARRETO MIRANDA', 21);
+INSERT  INTO question (question, answer, node_id) VALUES ( '¿QUÉ DOCUMENTO TE ENTREGARÁN EN ÉSTE LUGAR QUE TE SERVIRÁ PARA IDENTIFICARTE E INGRESAR A LA UAM?', 'CARNET ESTUDIANTIL', 21);

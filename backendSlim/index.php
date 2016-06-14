@@ -65,6 +65,10 @@ $app->post('/inscriptions/user', 'getCircuitInscripted');
  */
 $app->post('/nodes/showhint', 'getUserHints');
 
+/*
+ * Mostrar las pistas activas de usuario en la carrera especificada
+ */
+$app->post('/nodes/showquestion', 'getUserQuestions');
 
 
 /*
@@ -72,7 +76,21 @@ $app->post('/nodes/showhint', 'getUserHints');
  * @param  user_id   el id del usuario
  * @param  circuit_id  el id de la carrera
  */
- $app->post('/nodesdiscovered/nodes', 'getNotVisitedNodes');
+ $app->post('/nodesdiscovered/tovisit', 'getNotVisitedNodes');
+
+ /*
+  * Filtrar todos los nodos que corresponden a la carrera que han descubiertos
+  * @param  user_id   el id del usuario
+  * @param  circuit_id  el id de la carrera
+  */
+  $app->post('/nodesdiscovered/visited', 'getVisitedNodes');
+
+	/*
+	 * Filtrar todos las preguntas de un nodo especìfico
+	 * @param  node_id   el id del nodo
+	 */
+	 $app->get('/questions/node/:id', 'getQuestionsNode');
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Nodes
@@ -228,6 +246,35 @@ function getNotVisitedNodes(){
  }
 //{"user_id":1, "circuit_id":1}
 
+
+/**
+* POST /nodesdiscovered/visited
+* @param user_id $user_id
+* @param circuit_id $circuit_id
+* @return mixed
+*/
+function getVisitedNodes(){
+ global $db, $request, $response;
+ $inscription = json_decode($request->getBody());
+		/*filtre carreras en las que el user se encuentra inscrito y la carrera se encuentra activa
+		 *@param email  el email del user
+		 */
+		$sql = "SELECT n.id FROM node n INNER JOIN (SELECT d.node_id FROM nodediscovered d WHERE d.user_id=:user_id) AS l
+						ON n.id=l.node_id WHERE n.circuit_id=:circuit_id";
+		try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("user_id", $inscription->user_id);
+			 $stmt->bindParam("circuit_id", $inscription->circuit_id);
+			 $stmt->execute();
+			 $nodes = $stmt->fetchAll(PDO::FETCH_OBJ);
+			 $response->write( json_encode($nodes));
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+ }
+//{"user_id":1, "circuit_id":1}
+
+
 /**
 * POST /nodes/showhint
 * @param integer $user_id
@@ -251,6 +298,52 @@ function getUserHints(){
     }
  }
 //{"user_id":1, "circuit_id":}
+
+
+/**
+* POST /nodes/showquestion
+* @param integer $user_id
+* @param integer $circuit_id
+* @return mixed
+*/
+function getUserQuestions(){
+	global $db, $request;
+		 $question = json_decode($request->getBody());
+		 $sql = "SELECT n.id FROM node n JOIN (SELECT * FROM nodediscovered d WHERE d.user_id=:user_id AND d.status= 1) AS t
+		 ON n.id= t.node_id WHERE n.circuit_id=:circuit_id";
+     try {
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam("user_id", $question ->user_id);
+				$stmt->bindParam("circuit_id", $question->circuit_id);
+        $stmt->execute();
+        $question = $stmt->fetchAll(PDO::FETCH_OBJ);
+        echo json_encode($question);
+    } catch(PDOException $e) {
+        echo '{"error":{"text":'. $e->getMessage() .'}}';
+    }
+ }
+//{"user_id":1, "circuit_id":}
+
+
+/**
+* GET /questions/node/{id}
+* @param integer $id
+* @return mixed
+*/
+function getQuestionsNode($node_id){
+ global $db, $response;
+		$sql = "SELECT * FROM question WHERE node_id=:node_id";
+		try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("node_id", $node_id);
+			 $stmt->execute();
+       $question = $stmt->fetchAll(PDO::FETCH_OBJ);
+			 echo json_encode($question);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -621,20 +714,17 @@ global $db, $request;
 */
 function addNodeDiscovered() {
 global $db, $request;
-	//si status = 1 requiere un update antes de hacer el insert
 	$nodeDiscovered = json_decode($request->getBody());
-$sql = "INSERT  INTO nodeDiscovered (node_id, user_id, status, statusDate1, statusDate2, statusDate3) VALUES (:node_id, :user_id, :status, :statusDate1, :statusDate2, :statusDate3)";
+	$sql = "INSERT  INTO nodeDiscovered (node_id, user_id, question_id, status, statusDate1) VALUES (:node_id, :user_id, :question_id, :status, :statusDate1)";
 	try {
 			$stmt = $db->prepare($sql);
 			$stmt->bindParam("node_id", $nodeDiscovered->node_id);
 			$stmt->bindParam("user_id", $nodeDiscovered->user_id);
+			$stmt->bindParam("question_id", $nodeDiscovered->question_id);
 			$stmt->bindParam("status", $nodeDiscovered->status);
 			$stmt->bindParam("statusDate1", $nodeDiscovered->statusDate1);
-			$stmt->bindParam("statusDate2", $nodeDiscovered->statusDate2);
-			$stmt->bindParam("statusDate3", $nodeDiscovered->statusDate3);
 			$stmt->execute();
 			$nodeDiscovered->id = $db->lastInsertId();
-
 			echo json_encode($nodeDiscovered);
 	} catch(PDOException $e) {
 			echo '{"error":{"text":'. $e->getMessage() .'}}';
@@ -811,7 +901,7 @@ $sql = "UPDATE nodeDiscovered SET node_id=:node_id, user_id=:user_id, status=:st
 	}
 }
 //el null tiene que ir en minùsculas
-//{"node_id":1, "user_id":1,"status": 0, "statusDate1":"2016-06-10 15:32:31", "statusDate2":null, "statusDate3":null}
+//{"node_id":1, "user_id":1, "question_id":1, "status": 0, "statusDate1":"2016-06-10 15:32:31", "statusDate2":null, "statusDate3":null}
 
 
 

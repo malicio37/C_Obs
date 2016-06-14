@@ -91,7 +91,6 @@ myApp.onPageInit('registroUsuario', function (page) {
       var params= '{"name":"' + nombres + '",' + '"lastname":"' + apellidos + '",'+
       '"birthDate":"' + fechaNacimiento + '",' + '"email":"' + email + '", "password":"' + password  + '",'+ '"color":"' + color + '",'+
       '"gender":"' + genero + '",'+ '"type":"usuario"}';
-        console.log(params);
         $$.post(backend +'/users', params, function (data) {
         if(data.indexOf('error') > -1){
 
@@ -100,7 +99,6 @@ myApp.onPageInit('registroUsuario', function (page) {
           mainView.router.loadPage("inscripcion.html");
         }
         else{
-          console.log ('usuario creado exitosamente: ' + data);
           var arreglo=JSON.parse(data);
           user = arreglo.id;
           //cargar la pagina de inscripcion de carreras despues de mostrar carreras activas
@@ -161,7 +159,53 @@ myApp.onPageInit('principal2', function (page) {
     document.getElementById("userMail").innerHTML = "Usuario: " + email;
     //pageContainer.find('a[name="textoCarrera"]').val(arreglo[0].name);
   });
+
+  //obtenga nodosVisitados, si no tiene ninguno del circuito seleccionado que le dé la primera pista
+  var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
+  //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
+  $$.post(backend +'/nodesdiscovered/visited',params, function (data) {
+    var arreglo=JSON.parse(data);
+    if(Object.keys(arreglo).length==0){
+      //console.log("generar primera pista");
+      genDiscoveredNode();
+    }
+  });
 });
+
+
+function genDiscoveredNode(){
+  var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
+  $$.post(backend +'/nodesdiscovered/tovisit',params, function (data) {
+    var arreglo=JSON.parse(data);
+    var longitud= Object.keys(arreglo).length;
+    var nodo=Math.floor(Math.random() * longitud);
+    $$.get(backend +'/questions/node/' + arreglo[nodo].id, function (data2) {
+      var arreglo2=JSON.parse(data2);
+      var quests= Object.keys(arreglo2).length;
+      var pregunta=Math.floor(Math.random() * quests);
+      params='{"node_id":'+ arreglo[nodo].id + ', "user_id":'+ user +',"question_id":' + arreglo2[pregunta].id + ', "status": ' + 0 + ', " statusDate1" : "'+ getActualDateTime() +'", "statusDate2" : null, "statusDate3": null}';
+      $$.post(backend +'/nodesdiscovered',params, function (data3) {
+        console.log(params);
+        console.log(data3);
+        console.log("primera pista generada!!");
+      });
+    });
+  });
+}
+
+
+function getActualDateTime(){
+  var d = new Date();
+  var fechaHora=(
+      d.getFullYear() + "-" +
+      ("00" + (d.getMonth() + 1)).slice(-2) + "-" +
+      ("00" + d.getDate()).slice(-2) + " " +
+      ("00" + d.getHours()).slice(-2) + ":" +
+      ("00" + d.getMinutes()).slice(-2) + ":" +
+      ("00" + d.getSeconds()).slice(-2)
+  );
+  return fechaHora;
+}
 
 myApp.onPageInit('verPista', function (page) {
   var pageContainer = $$(page.container);
@@ -169,15 +213,39 @@ myApp.onPageInit('verPista', function (page) {
   //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
   $$.post(backend +'/nodes/showhint',params, function (data) {
     var arreglo=JSON.parse(data);
-    console.log(data);
-    var test="";
-    for(i=0;i < Object.keys(arreglo).length; i++){
-      test+= arreglo[i].hint + '<br><br>';
+    if(Object.keys(arreglo).length==0){
+      myApp.alert('No tiene pistas disponibles');
     }
-    document.getElementById("listview").innerHTML = test;
+    else{
+      var test="";
+      for(i=0;i < Object.keys(arreglo).length; i++){
+        test+= arreglo[i].hint + '<br><br>';
+      }
+      document.getElementById("listaPistas").innerHTML = test;
+    }
   });
 });
 
+
+myApp.onPageInit('verPregunta', function (page) {
+  var pageContainer = $$(page.container);
+  var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
+  //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
+  $$.post(backend +'/nodes/showquestion',params, function (data) {
+    var arreglo=JSON.parse(data);
+    console.log(data);
+    if(Object.keys(arreglo).length==0){
+      myApp.alert('No tiene preguntas disponibles');
+    }
+    else{
+      var test="";
+      for(i=0;i < Object.keys(arreglo).length; i++){
+        test+= arreglo[i].hint + '<br><br>';
+      }
+      document.getElementById("listaPreguntas").innerHTML = test;
+    }
+  });
+});
 
 /*
 $$(document).on('pageInit', function (e) {
