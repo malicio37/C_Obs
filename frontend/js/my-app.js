@@ -3,10 +3,10 @@ var myApp = new Framework7();
 
 // Export selectors engine
 var $$ = Dom7;
-var user;
-var email;
+var user=3;
+var email="algo";
 //var password;
-var circuit;
+var circuit=1;
 var backend='http://localhost/C_Obs/backendSlim'
 // Add view
 var mainView = myApp.addView('.view-main', {
@@ -178,15 +178,22 @@ function genDiscoveredNode(){
   $$.post(backend +'/nodesdiscovered/tovisit',params, function (data) {
     var arreglo=JSON.parse(data);
     var longitud= Object.keys(arreglo).length;
-    var nodo=Math.floor(Math.random() * longitud);
-    $$.get(backend +'/questions/node/' + arreglo[nodo].id, function (data2) {
-      var arreglo2=JSON.parse(data2);
-      var quests= Object.keys(arreglo2).length;
-      var pregunta=Math.floor(Math.random() * quests);
-      params='{"node_id":'+ arreglo[nodo].id + ', "user_id":'+ user +',"question_id":' + arreglo2[pregunta].id + ', "status": ' + 0 + ', " statusDate1" : "'+ getActualDateTime() +'", "statusDate2" : null, "statusDate3": null}';
-      $$.post(backend +'/nodesdiscovered',params, function (data3) {
-        console.log("primera pista generada!!");
-      });
+    if(longitud==0){
+      myApp.alert('FELICIDADES!! haz terminado la Carrera de Observación UAM');
+    }
+    else {
+      var nodo=Math.floor(Math.random() * longitud);
+      $$.get(backend +'/questions/node/' + arreglo[nodo].id, function (data2) {
+        var arreglo2=JSON.parse(data2);
+        var quests= Object.keys(arreglo2).length;
+        var pregunta=Math.floor(Math.random() * quests);
+        params='{"node_id":'+ arreglo[nodo].id + ', "user_id":'+ user +',"question_id":' + arreglo2[pregunta].id +
+                ', "status": ' + 0 + ', " statusDate1" : "'+ getActualDateTime()
+                +'", "statusDate2" : null, "statusDate3": null}';
+        $$.post(backend +'/nodesdiscovered',params, function (data3) {
+          myApp.alert('Tienes una nueva pista!!');
+        });
+      }
     });
   });
 }
@@ -228,8 +235,7 @@ myApp.onPageInit('verPista', function (page) {
 myApp.onPageInit('verPregunta', function (page) {
   var pageContainer = $$(page.container);
   var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
-  //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
-  $$.post(backend +'/nodes/showquestion',params, function (data) {
+  $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
     var arreglo=JSON.parse(data);
     if(Object.keys(arreglo).length==0){
       myApp.alert('No tiene preguntas disponibles');
@@ -244,12 +250,12 @@ myApp.onPageInit('verPregunta', function (page) {
   });
 });
 
-myApp.onPageInit('responder', function (page) {
-  //cargar los valores de carreras previos
+myApp.onPageInit('response', function (page) {
+  //cargar las preguntas pendientes por contestar
   var pageContainer = $$(page.container);
   var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
   var selectObject= pageContainer.find('select[name="preguntas"]');
-  $$.post(backend +'/nodes/showquestion',params, function (data) {
+  $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
     if(data=="[]"){
       myApp.alert('No tiene preguntas pendientes de respuesta');
     }
@@ -264,30 +270,100 @@ myApp.onPageInit('responder', function (page) {
       }
     }
   });
-
   pageContainer.find('.botonResponder').on('click', function () {
-      question= pageContainer.find('select[name="preguntas"]').val();
-
-      //tomar valor del campo respuesta
-      //cambiar el estado a mayusculas fijas y sin tildes
-      //validar la respuesta
-      //si es errornea alert con respuesta incorrecta
-      //si està ok, put a estado 2 y generar nueva pista
+      var question= pageContainer.find('select[name="preguntas"]').val();
       if(question==""){
         myApp.alert('No tiene preguntas que contestar, debe encontrar un nodo antes');
       }
       else{
-        //$$.get(backend +'/circuits/'+circuit, function (data) {
-        //var arreglo=JSON.parse(data);
-        //document.getElementById("textoCarrera").innerHTML = arreglo.nombre;
-        //pageContainer.find('a[name="textoCarrera"]').val(arreglo.nombre);
-        //pageContainer.find('a[name="textoCorreo"]').val(email);
-      //});
-      mainView.router.loadPage("principal.html");
+        var respuesta = pageContainer.find('input[name="response"]').val();
+        var respTemp=replaceall(respuesta,' ','');
+        if(respTemp==""){
+          myApp.alert('Debe ingresar un respuesta válida');
+        }
+        else{
+          //normalizar respuesta
+          respuesta=respuesta.toUpperCase();
+          respuesta=replaceall(respuesta,'Á','A');
+          respuesta=replaceall(respuesta,'É','E');
+          respuesta=replaceall(respuesta,'Í','I');
+          respuesta=replaceall(respuesta,'Ó','O');
+          respuesta=replaceall(respuesta,'Ú','U');
+          //validar la respuesta
+          var params= '{"question_id":' + question +', "answer":"' + respuesta + '"}';
+            $$.post(backend +'/questions/validate', params, function (data) {
+              var arreglo=JSON.parse(data);
+            if(data == 'false'){
+              myApp.alert('Respuesta incorrecta, trate nuevamente ' + data);
+            }
+            else{
+              //obtener el id del nodo descubierto a actualizar
+              var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+', "question_id":' + question + '}';
+              var nd;
+              $$.post(backend +'/nodesdiscovered/getid', params, function (data) {
+                var nodoDescubierto=JSON.parse(data);
+                var nd_id= nodoDescubierto.id;
+                var nd_node_id= nodoDescubierto.node_id;
+                var nd_statusDate1= nodoDescubierto.statusDate1;
+                var nd_statusDate2= nodoDescubierto.statusDate2;
+                //put a estado 2
+                var params = '{"node_id":'+ nd_node_id + ', "user_id":'+user+', "question_id":' + question +', "status":2'
+                              +', "statusDate1":"'+nd_statusDate1+'","statusDate2":"'+nd_statusDate2+
+                              '","statusDate3":"'+ getActualDateTime() + '"}';
+
+                $$.ajax({
+                   url: backend + '/nodesdiscovered/'+nd_id,
+                   type: "PUT",
+                   contentType: "application/json",
+                   data: params,
+                   success: function(data, textStatus ){
+                     data = JSON.parse(data);
+                     //generar nueva pista
+                     genDiscoveredNode();
+                     //lo envìa a la página de ver pista a ver la nueva pista generada
+                     mainView.router.loadPage("principal.html");
+                   },
+                   error: function(xhr, textStatus, errorThrown){
+                     // We have received response and can hide activity indicator
+                     console.log('fallo al actualizar nodo descubierto');
+                   }
+                });
+
+                  /*$$.put(backend +'/nodesdiscovered/'+ nd_id, params, function (data) {
+                  var nodoDescubierto=JSON.parse(data);
+                  console.log(nodoDescubierto);
+                  //generar nueva pista
+                  genDiscoveredNode();
+                  //lo envìa a la página de ver pista a ver la nueva pista generada
+                  mainView.router.loadPage("verPista.html");
+                });
+                */
+              });
+            }
+          });
+        }
       }
   });
 });
 
+function replaceall(str,replace,with_this)
+{
+    var str_hasil ="";
+    var temp;
+    for(var i=0;i<str.length;i++) // not need to be equal. it causes the last change: undefined..
+    {
+        if (str[i] == replace)
+        {
+            temp = with_this;
+        }
+        else
+        {
+                temp = str[i];
+        }
+        str_hasil += temp;
+    }
+    return str_hasil;
+}
 
 
 /*

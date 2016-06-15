@@ -68,7 +68,7 @@ $app->post('/nodes/showhint', 'getUserHints');
 /*
  * Mostrar las preguntas activas de usuario en la carrera especificada
  */
-$app->post('/nodes/showquestion', 'getUserQuestions');
+$app->post('/nodesdiscovered/showquestion', 'getUserQuestions');
 
 
 /*
@@ -90,6 +90,25 @@ $app->post('/nodes/showquestion', 'getUserQuestions');
 	 * @param  node_id   el id del nodo
 	 */
 	 $app->get('/questions/node/:id', 'getNodeQuestions');
+
+
+
+/*
+ * Valida el valor de respuesta proporcionado por el usuario
+ * @param question_id id de la pregunta
+ * @param response respuesta
+ */
+ $app->post('/questions/validate', 'validateResponse');
+
+ /*
+ * obtener el id del node descubierto del cual se tienen unos parámetros
+ * @param question_id id de la pregunta
+ * @param user_id id del usuario
+ * @param circuit_id id de la carrera
+ * @return json
+ */
+ $app->post('/nodesdiscovered/getid', 'getNodediscoveredId');
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -301,7 +320,7 @@ function getUserHints(){
 
 
 /**
-* POST /nodes/showquestion
+* POST /nodesdiscovered/showquestion
 * @param integer $user_id
 * @param integer $circuit_id
 * @return mixed
@@ -345,6 +364,65 @@ function getNodeQuestions($node_id){
 	 }
 }
 
+
+/*
+ * Valida el valor de respuesta proporcionado por el usuario
+ * @param question_id id de la pregunta
+ * @param response respuesta
+ */
+
+/**
+* POST /questions/validate
+* @param question_id id de la pregunta
+* @param response respuesta
+* @return mixed
+*/
+function validateResponse() {
+ global $db, $request;
+	 //si status = 1 requiere un update antes de hacer el insert
+	 $question = json_decode($request->getBody());
+ 	 $sql = "SELECT id FROM question WHERE id=:id AND answer=:answer";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $question->question_id);
+			 $stmt->bindParam("answer", $question->answer);
+			 $stmt->execute();
+			 $question = $stmt->fetchObject();
+			 echo json_encode($question);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+//{"question_id": 2, "response":"jmmejia@autonoma.edu.co"}
+
+
+/**
+* POST /nodesdiscovered/getid
+* @param question_id id de la pregunta
+* @param user_id id del usuario
+* @param circuit_id id de la carrera
+* @return json
+*/
+function getNodediscoveredId() {
+ global $db, $request;
+	 //si status = 1 requiere un update antes de hacer el insert
+	 $nodediscovered = json_decode($request->getBody());
+ 	 $sql = "SELECT nodediscovered.id, nodediscovered.node_id, nodediscovered.statusDate1, nodediscovered.statusDate2
+	  				FROM nodediscovered JOIN node ON nodediscovered.node_id=node.id
+	 				WHERE nodediscovered.user_id=:user_id AND nodediscovered.question_id = :question_id AND node.circuit_id=:circuit_id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("user_id", $nodediscovered->user_id);
+			 $stmt->bindParam("question_id", $nodediscovered->question_id);
+			 $stmt->bindParam("circuit_id", $nodediscovered->circuit_id);
+			 $stmt->execute();
+			 $nodediscovered = $stmt->fetchObject();
+			 echo json_encode($nodediscovered);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+//{"question_id": 2, "response":"jmmejia@autonoma.edu.co"}
 
 ///////////////////////////////////////////////////////////////////////////////
 
