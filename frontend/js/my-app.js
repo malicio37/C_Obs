@@ -422,7 +422,7 @@ function replaceall(str,replace,with_this)
 {
     var str_hasil ="";
     var temp;
-    for(var i=0;i<str.length;i++) // not need to be equal. it causes the last change: undefined..
+    for(var i=0;i<str.length;i++)
     {
         if (str[i] == replace)
         {
@@ -437,6 +437,44 @@ function replaceall(str,replace,with_this)
     return str_hasil;
 }
 
+
+myApp.onPageInit('puntuacion', function (page) {
+  var pageContainer = $$(page.container);
+  var texto;
+  $$.get(backend +'/circuits/score/'+circuit, function (data) {
+    var arreglo=JSON.parse(data);
+    texto="De un total de "+ arreglo.total + " nodos a visitar has completado ";
+  });
+  $$.get(backend +'/nodesdiscovered/score/'+user+'/'+circuit, function (data) {
+    var arreglo=JSON.parse(data);
+    texto+= Object.keys(arreglo).length + "</br> A continuación los nombres de los nodos que has completado: </br>";
+    for(i=0;i < Object.keys(arreglo).length; i++){
+      texto+= arreglo[i].name + '<br>';
+    }
+    document.getElementById("listaPuntuacion").innerHTML = texto;
+  });
+});
+
+
+myApp.onPageInit('score', function (page) {
+  var pageContainer = $$(page.container);
+  var texto="";
+  $$.get(backend +'/circuits/totalscore/'+circuit, function (data) {
+    var arreglo=JSON.parse(data);
+    var longitud= Object.keys(arreglo).length;
+    var top=5;
+    if(longitud == 0){
+      myApp.alert('Ningún participante tiene nodos visitados aún!! ');
+    }
+    if(longitud < 4){
+      top=Object.keys(arreglo).length;
+    }
+    for(i=0;i < top; i++){
+      texto+= "Posición "+ (i+1) + " | " + arreglo[i].email + " | "+ arreglo[i].cantidad+" nodos completados " +'<br>';
+    }
+    document.getElementById("totalScore").innerHTML = texto;
+  });
+});
 
 function signOut() {
   user='';

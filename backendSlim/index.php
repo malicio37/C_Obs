@@ -540,7 +540,7 @@ function getPuntuacion($user_id, $circuit_id){
 			 $stmt->bindParam("user_id", $user_id);
 			 $stmt->bindParam("circuit_id", $circuit_id);
 			 $stmt->execute();
-			 $nodeDiscovered = $stmt->fetchObject();
+			 $nodeDiscovered = $stmt->fetchAll(PDO::FETCH_OBJ);
 			 echo json_encode($nodeDiscovered);
 	 } catch(PDOException $e) {
 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
