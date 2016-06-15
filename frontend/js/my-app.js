@@ -3,10 +3,10 @@ var myApp = new Framework7();
 
 // Export selectors engine
 var $$ = Dom7;
-var user=3;
-var email="algo";
+var user;
+var email;
 //var password;
-var circuit=1;
+var circuit;
 var backend='http://localhost/C_Obs/backendSlim'
 // Add view
 var mainView = myApp.addView('.view-main', {
@@ -153,20 +153,19 @@ myApp.onPageInit('registroUsuario', function (page) {
 myApp.onPageInit('principal2', function (page) {
   var pageContainer = $$(page.container);
   //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
-  $$.get(backend +'/circuits/'+circuit, function (data) {
+  //ojo
+  $$.get(backend +'/circuits/'+ circuit, function (data) {
     var arreglo=JSON.parse(data);
     document.getElementById("circuitName").innerHTML = "Carrera: " +arreglo.name;
     document.getElementById("userMail").innerHTML = "Usuario: " + email;
     //pageContainer.find('a[name="textoCarrera"]').val(arreglo[0].name);
   });
-
   //obtenga nodosVisitados, si no tiene ninguno del circuito seleccionado que le dé la primera pista
-  var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
+  var params = '{"user_id":'+ user + ', "circuit_id":' + circuit + '}';
   //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
-  $$.post(backend +'/nodesdiscovered/visited',params, function (data) {
+  $$.get(backend +'/nodesdiscovered/visited/'+user+'/'+circuit, function (data) {
     var arreglo=JSON.parse(data);
     if(Object.keys(arreglo).length==0){
-      //console.log("generar primera pista");
       genDiscoveredNode();
     }
   });
@@ -188,14 +187,14 @@ function genDiscoveredNode(){
         var quests= Object.keys(arreglo2).length;
         var pregunta=Math.floor(Math.random() * quests);
         params='{"node_id":'+ arreglo[nodo].id + ', "user_id":'+ user +',"question_id":' + arreglo2[pregunta].id +
-                ', "status": ' + 0 + ', " statusDate1" : "'+ getActualDateTime()
+                ', "status": 0, "statusDate1" : "'+ getActualDateTime()
                 +'", "statusDate2" : null, "statusDate3": null}';
         $$.post(backend +'/nodesdiscovered',params, function (data3) {
           myApp.alert('Tienes una nueva pista!!');
         });
+      });
       }
     });
-  });
 }
 
 
@@ -232,23 +231,103 @@ myApp.onPageInit('verPista', function (page) {
 });
 
 
-myApp.onPageInit('verPregunta', function (page) {
+myApp.onPageInit('escanear', function (page) {
+  //cargar las preguntas pendientes por contestar
   var pageContainer = $$(page.container);
+  var selectObject= pageContainer.find('select[name="pistasQR"]');
+  //
   var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
-  $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
+  $$.post(backend +'/nodes/showhint',params, function (data) {
     var arreglo=JSON.parse(data);
     if(Object.keys(arreglo).length==0){
-      myApp.alert('No tiene preguntas disponibles');
+      myApp.alert('No tiene pistas pendientes para seguir');
     }
     else{
-      var test="";
+      //cargar valores en el select carrerasInscritas
       for(i=0;i < Object.keys(arreglo).length; i++){
-        test+= arreglo[i].question + '<br><br>';
+        var opcion = document.createElement("option");
+        opcion.text = arreglo[i].hint;
+        opcion.value = arreglo[i].id;
+        selectObject.append(opcion);
       }
-      document.getElementById("listaPreguntas").innerHTML = test;
     }
   });
-});
+  pageContainer.find('.botonEscanear').on('click', function () {
+      var nodo_id= pageContainer.find('select[name="pistasQR"]').val();
+
+      /**
+      * carga de datos del QR
+      */
+
+      var codigo= 0.9744425397128262;
+      if(nodo_id=="" || codigo==null){
+        myApp.alert('No tiene pistas pendientes para seguir');
+      }
+      else{
+      var params= '{"node_id":' + nodo_id + ', "code":"' + codigo + '"}';
+        $$.post(backend +'/nodes/validate', params, function (data) {
+          var arreglo=JSON.parse(data);
+        if(data == 'false'){
+          myApp.alert('El código no corresponde a la pista actual ');
+        }
+        else{
+          //obtener el id del nodo descubierto a actualizar
+
+          $$.get(backend +'/nodesdiscovered/' + user + '/' + nodo_id,  function (data) {
+            var nodoDescubierto=JSON.parse(data);
+            var nd_id= nodoDescubierto.id;
+            var nd_question_id= nodoDescubierto.question_id;
+            var nd_statusDate1= nodoDescubierto.statusDate1;
+            //put a estado 1
+            var params = '{"node_id":'+ nodo_id + ', "user_id":'+user+', "question_id":' + nd_question_id +', "status":1'
+                          +', "statusDate1":"'+nd_statusDate1+'","statusDate2":"'+getActualDateTime()+
+                          '","statusDate3":null }';
+            $$.ajax({
+               url: backend + '/nodesdiscovered/'+nd_id,
+               type: "PUT",
+               contentType: "application/json",
+               data: params,
+               success: function(data, textStatus ){
+                 data = JSON.parse(data);
+                 myApp.alert('Tienes una nueva pregunta!!');
+                 //lo envìa a la página de ver pista a ver la nueva pista generada
+                 mainView.router.loadPage("principal.html");
+               },
+               error: function(xhr, textStatus, errorThrown){
+                 // We have received response and can hide activity indicator
+                 console.log('fallo al actualizar nodo descubierto');
+               }
+            });
+          });
+        }
+      });
+      }
+    });
+  });
+
+
+
+
+  myApp.onPageInit('verPregunta', function (page) {
+    //cargar las preguntas pendientes por contestar
+    var pageContainer = $$(page.container);
+    var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
+    var selectObject= pageContainer.find('select[name="preguntas"]');
+    $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
+      if(data=="[]"){
+        myApp.alert('No tiene preguntas pendientes de respuesta');
+      }
+      else{
+        var arreglo=JSON.parse(data);
+        var test="";
+        for(i=0;i < Object.keys(arreglo).length; i++){
+          test+= arreglo[i].question + '<br><br>';
+        }
+        document.getElementById("listaPreguntas").innerHTML = test;
+      }
+    });
+  });
+
 
 myApp.onPageInit('response', function (page) {
   //cargar las preguntas pendientes por contestar
@@ -256,11 +335,11 @@ myApp.onPageInit('response', function (page) {
   var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
   var selectObject= pageContainer.find('select[name="preguntas"]');
   $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
-    if(data=="[]"){
+    var arreglo=JSON.parse(data);
+    if(Object.keys(arreglo).length==0){
       myApp.alert('No tiene preguntas pendientes de respuesta');
     }
     else{
-      var arreglo=JSON.parse(data);
       //cargar valores en el select carrerasInscritas
       for(i=0;i < Object.keys(arreglo).length; i++){
         var opcion = document.createElement("option");
@@ -294,12 +373,12 @@ myApp.onPageInit('response', function (page) {
             $$.post(backend +'/questions/validate', params, function (data) {
               var arreglo=JSON.parse(data);
             if(data == 'false'){
-              myApp.alert('Respuesta incorrecta, trate nuevamente ' + data);
+              myApp.alert('Respuesta incorrecta, trate nuevamente ');
             }
             else{
               //obtener el id del nodo descubierto a actualizar
               var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+', "question_id":' + question + '}';
-              var nd;
+
               $$.post(backend +'/nodesdiscovered/getid', params, function (data) {
                 var nodoDescubierto=JSON.parse(data);
                 var nd_id= nodoDescubierto.id;
@@ -319,6 +398,7 @@ myApp.onPageInit('response', function (page) {
                    success: function(data, textStatus ){
                      data = JSON.parse(data);
                      //generar nueva pista
+                     myApp.alert('Respuesta correcta!! ');
                      genDiscoveredNode();
                      //lo envìa a la página de ver pista a ver la nueva pista generada
                      mainView.router.loadPage("principal.html");
@@ -329,15 +409,6 @@ myApp.onPageInit('response', function (page) {
                    }
                 });
 
-                  /*$$.put(backend +'/nodesdiscovered/'+ nd_id, params, function (data) {
-                  var nodoDescubierto=JSON.parse(data);
-                  console.log(nodoDescubierto);
-                  //generar nueva pista
-                  genDiscoveredNode();
-                  //lo envìa a la página de ver pista a ver la nueva pista generada
-                  mainView.router.loadPage("verPista.html");
-                });
-                */
               });
             }
           });
@@ -365,42 +436,6 @@ function replaceall(str,replace,with_this)
     return str_hasil;
 }
 
-
-/*
-$$(document).on('pageInit', function (e) {
-	var page = e.detail.page;
-  var params = '{"idCarrera":' + circuit + ',' + '"mail":"' + email + '"}';
-    if (page.name === 'verPista') {
-  		$$.get(backend + '/nodo', function (data) {
-        var arreglo=JSON.parse(data);
-        //console.log(arreglo[0].nombre);
-        //cargar valores en el select carrerasInscritas
-        var test="";
-        for(i=0;i < Object.keys(arreglo).length; i++){
-          test+= arreglo[i].pista;
-          test+='<br><br>';
-        }
-  			document.getElementById("listview").innerHTML = test;
-  		});
-  	};
-  	if (page.name === 'verPregunta') {
-
-  	};
-  	if (page.name === 'responder') {
-
-  	};
-  	if (page.name === 'verPuntuacion') {
-
-  	};
-  	if (page.name === 'estadoCompetencia') {
-
-  	};
-  	if (page.name === 'verMapa') {
-
-  	};
-
-});
-*/
 
 function signOut() {
   user='';

@@ -83,7 +83,7 @@ $app->post('/nodesdiscovered/showquestion', 'getUserQuestions');
   * @param  user_id   el id del usuario
   * @param  circuit_id  el id de la carrera
   */
-  $app->post('/nodesdiscovered/visited', 'getVisitedNodes');
+  $app->get('/nodesdiscovered/visited/:user_id/:circuit_id', 'getVisitedNodes');
 
 	/*
 	 * Filtrar todos las preguntas de un nodo especìfico
@@ -108,6 +108,24 @@ $app->post('/nodesdiscovered/showquestion', 'getUserQuestions');
  * @return json
  */
  $app->post('/nodesdiscovered/getid', 'getNodediscoveredId');
+
+
+ /**
+ * Validar el código QR que corresponda al código del nodo
+ * @param id id del nodo
+ * @param code còdigo QR
+ * @return mixed
+ */
+$app->post('/nodes/validate', 'validateNodeCode');
+
+/**
+* Obtener el id de nodediscovered a partir del user_id y node_id
+* @param integer $user_id
+* @param integer $node_id
+* @return mixed
+*/
+$app->get('/nodesdiscovered/:user_id/:node_id', 'getNodeDiscoveredByUserNode');
+
 
 
 
@@ -272,21 +290,23 @@ function getNotVisitedNodes(){
 * @param circuit_id $circuit_id
 * @return mixed
 */
-function getVisitedNodes(){
+function getVisitedNodes($user_id, $circuit_id){
  global $db, $request, $response;
- $inscription = json_decode($request->getBody());
+ //$inscription = json_decode($request->getBody());
 		/*filtre carreras en las que el user se encuentra inscrito y la carrera se encuentra activa
 		 *@param email  el email del user
-		 */
+
 		$sql = "SELECT n.id FROM node n INNER JOIN (SELECT d.node_id FROM nodediscovered d WHERE d.user_id=:user_id) AS l
 						ON n.id=l.node_id WHERE n.circuit_id=:circuit_id";
+*/
+		$sql = "SELECT n.id FROM node n INNER JOIN nodediscovered d ON n.id=d.node_id WHERE n.circuit_id=:circuit_id AND d.user_id=:user_id";
 		try {
 			 $stmt = $db->prepare($sql);
-			 $stmt->bindParam("user_id", $inscription->user_id);
-			 $stmt->bindParam("circuit_id", $inscription->circuit_id);
+			 $stmt->bindParam("user_id", $user_id);
+			 $stmt->bindParam("circuit_id", $circuit_id);
 			 $stmt->execute();
-			 $nodes = $stmt->fetchAll(PDO::FETCH_OBJ);
-			 $response->write( json_encode($nodes));
+			 $inscription = $stmt->fetchAll(PDO::FETCH_OBJ);
+			 $response->write( json_encode($inscription));
 	 } catch(PDOException $e) {
 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
 	 }
@@ -423,6 +443,54 @@ function getNodediscoveredId() {
 	 }
 }
 //{"question_id": 2, "response":"jmmejia@autonoma.edu.co"}
+
+
+
+/**
+* POST /nodes/validate
+* @param id id del nodo
+* @param code código QR
+* @return mixed
+*/
+function validateNodeCode() {
+ global $db, $request;
+	 //si status = 1 requiere un update antes de hacer el insert
+	 $node = json_decode($request->getBody());
+ 	 $sql = "SELECT id FROM node WHERE id=:id AND code=:code";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("id", $node->node_id);
+			 $stmt->bindParam("code", $node->code);
+			 $stmt->execute();
+			 $node = $stmt->fetchObject();
+			 echo json_encode($node);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+//{"node_id": 2, "response":"jmmejia@autonoma.edu.co"}
+
+
+/**
+* GET /nodesDiscovered/{user_id}/{node_id}
+* @param integer $user_id
+* @param integer $node_id
+* @return mixed
+*/
+function getNodeDiscoveredByUserNode($user_id, $node_id){
+ global $db, $response;
+	 $sql = "SELECT * FROM nodeDiscovered WHERE user_id=:user_id AND node_id=:node_id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("user_id", $user_id);
+			 $stmt->bindParam("node_id", $node_id);
+			 $stmt->execute();
+			 $nodeDiscovered = $stmt->fetchObject();
+			 echo json_encode($nodeDiscovered);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
