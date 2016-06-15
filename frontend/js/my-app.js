@@ -117,11 +117,11 @@ myApp.onPageInit('registroUsuario', function (page) {
     var params = '{"user_id":'+ user + '}';
     var selectObject= pageContainer.find('select[name="carrerasInscritas"]');
     $$.post(backend +'/inscriptions/user', params, function (data) {
-      if(data=="[]"){
+      var arreglo=JSON.parse(data);
+      if(Object.keys(arreglo).length==0){
         myApp.alert('No tiene carreras inscritas, solicite su inscripción al administrador');
       }
       else{
-        var arreglo=JSON.parse(data);
         //cargar valores en el select carrerasInscritas
         for(i=0;i < Object.keys(arreglo).length; i++){
           var opcion = document.createElement("option");
@@ -259,7 +259,7 @@ myApp.onPageInit('escanear', function (page) {
       * carga de datos del QR
       */
 
-      var codigo= 0.9744425397128262;
+      var codigo= 0.6843510080914488;
       if(nodo_id=="" || codigo==null){
         myApp.alert('No tiene pistas pendientes para seguir');
       }
@@ -314,11 +314,12 @@ myApp.onPageInit('escanear', function (page) {
     var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
     var selectObject= pageContainer.find('select[name="preguntas"]');
     $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
-      if(data=="[]"){
+      var arreglo=JSON.parse(data);
+      if(Object.keys(arreglo).length==0){
         myApp.alert('No tiene preguntas pendientes de respuesta');
       }
       else{
-        var arreglo=JSON.parse(data);
+
         var test="";
         for(i=0;i < Object.keys(arreglo).length; i++){
           test+= arreglo[i].question + '<br><br>';

@@ -127,6 +127,37 @@ $app->post('/nodes/validate', 'validateNodeCode');
 $app->get('/nodesdiscovered/:user_id/:node_id', 'getNodeDiscoveredByUserNode');
 
 
+/**
+* GET /nodesDiscovered/score/{user_id}/{circuit_id}
+* @param integer $user_id
+* @param integer $circuit_id
+* @return mixed
+*/
+$app->get('/nodesdiscovered/score/:user_id/:circuit_id', 'getPuntuacion');
+
+
+/**
+* GET /circuits/score/{circuit_id}
+* @param integer $circuit_id
+* @return mixed
+*/
+$app->get('/circuits/score/:circuit_id', 'getTotalNodes');
+
+/**
+* GET /circuits/totalScore
+* @param integer $circuit_id
+* @return mixed
+*/
+$app->get('/circuits/totalscore/:circuit_id', 'getTotalScore');
+
+
+/**
+* GET /users/locationvisited/{user_id}
+* @param integer $user_id
+* @param integer $circuit_id
+* @return mixed
+*/
+$app->get('/users/locationvisited/:user_id/:circuit_id', 'getLocationVisited');
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -491,6 +522,96 @@ function getNodeDiscoveredByUserNode($user_id, $node_id){
 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
 	 }
 }
+
+
+
+/**
+* GET /nodesdiscovered/score/{user_id}/{circuit_id}
+* @param integer $user_id
+* @param integer $circuit_id
+* @return mixed
+*/
+function getPuntuacion($user_id, $circuit_id){
+ global $db, $response;
+	 $sql = "SELECT n.name FROM nodediscovered d JOIN node n ON d.node_id=n.id WHERE d.user_id=:user_id AND
+	 					n.circuit_id=:circuit_id AND d.status=2";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("user_id", $user_id);
+			 $stmt->bindParam("circuit_id", $circuit_id);
+			 $stmt->execute();
+			 $nodeDiscovered = $stmt->fetchObject();
+			 echo json_encode($nodeDiscovered);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+
+/**
+* GET /circuits/score/{circuit_id}
+* @param integer $circuit_id
+* @return mixed
+*/
+function getTotalNodes($circuit_id){
+ global $db, $response;
+	 $sql = "SELECT COUNT(id) as total FROM node n WHERE n.circuit_id=:circuit_id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("circuit_id", $circuit_id);
+			 $stmt->execute();
+			 $node = $stmt->fetchObject();
+			 echo json_encode($node);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+
+
+/**
+* GET /circuits/totalScore
+* @param integer $circuit_id
+* @return mixed
+*/
+function getTotalScore($circuit_id){
+ global $db, $response;
+	 $sql = "SELECT COUNT(u.id) AS cantidad, u.email FROM nodediscovered nd JOIN user u ON
+	  nd.user_id=u.id JOIN node n ON nd.node_id=n.id WHERE nd.status=2 AND n.circuit_id= :circuit_id GROUP BY nd.user_id DESC";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("circuit_id", $circuit_id);
+			 $stmt->execute();
+       $score = $stmt->fetchAll(PDO::FETCH_OBJ);
+			 echo json_encode($score);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
+
+
+/**
+* GET /users/locationvisited/{user_id}
+* @param integer $user_id
+* @return mixed
+*/
+function getLocationVisited($user_id, $circuit_id){
+ global $db, $response;
+	 $sql = "SELECT n.longitude, n.latitude FROM nodediscovered nd JOIN node n ON nd.node_id=n.id
+	 				 WHERE nd.status=2 AND nd.user_id=:user_id AND n.circuit_id=:circuit_id";
+	 try {
+			 $stmt = $db->prepare($sql);
+			 $stmt->bindParam("user_id", $user_id);
+			 $stmt->bindParam("circuit_id", $circuit_id);
+			 $stmt->execute();
+       $location = $stmt->fetchAll(PDO::FETCH_OBJ);
+			 echo json_encode($location);
+	 } catch(PDOException $e) {
+			 echo '{"error":{"text":'. $e->getMessage() .'}}';
+	 }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
