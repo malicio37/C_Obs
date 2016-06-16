@@ -44,3 +44,4 @@ div[class*="col-"] {
 a{
     white-space: normal;
 }
+#mapid { height: 180px; }

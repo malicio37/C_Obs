@@ -598,7 +598,7 @@ function getTotalScore($circuit_id){
 */
 function getLocationVisited($user_id, $circuit_id){
  global $db, $response;
-	 $sql = "SELECT n.longitude, n.latitude FROM nodediscovered nd JOIN node n ON nd.node_id=n.id
+	 $sql = "SELECT n.longitude, n.latitude, n.name FROM nodediscovered nd JOIN node n ON nd.node_id=n.id
 	 				 WHERE nd.status=2 AND nd.user_id=:user_id AND n.circuit_id=:circuit_id";
 	 try {
 			 $stmt = $db->prepare($sql);

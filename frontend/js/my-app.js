@@ -12,8 +12,8 @@ var backend='http://localhost/C_Obs/backendSlim'
 var mainView = myApp.addView('.view-main', {
     // Because we use fixed-through navbar we can enable dynamic navbar
     dynamicNavbar: true
-
 });
+
 
 
 myApp.onPageInit('index2', function (page) {
@@ -524,3 +524,24 @@ function signOut() {
   circuit='';
   mainView.router.loadPage("index.html");
 };
+
+
+myApp.onPageInit('verMapa', function (page) {
+  var map;
+  	map = L.map('mapid').setView([5.0672036513457535, -75.5031082034111], 16);
+  	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFsaWNpbzM3IiwiYSI6ImNpcGlzNmlpdDAxc3F0ZW00NXNnMGI0MTQifQ.EUkOOib26_TXpRN39uVvDQ', {
+  		maxZoom: 18,
+  		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+  			'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+  			'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+  		id: 'malicio37.0dp70o3a'
+  	}).addTo(map);
+    $$.get(backend +'/users/locationvisited/'+user +'/'+circuit, function (data) {
+      var locations=JSON.parse(data);
+      for(i=0;i < Object.keys(locations).length; i++){
+        var marker = L.marker([ locations[i].latitude , locations[i].longitude ]).addTo(map);
+        var nombre='"'+[locations[i].name]+'"';
+        marker.bindPopup(nombre).openPopup();
+      }
+    });
+});
