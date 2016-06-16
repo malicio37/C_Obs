@@ -7,7 +7,7 @@ var user;
 var email;
 //var password;
 var circuit;
-var backend='http://localhost/C_Obs/backendSlim'
+var backend='http://200.21.104.79/C_Obs/backendSlim'
 // Add view
 var mainView = myApp.addView('.view-main', {
     // Because we use fixed-through navbar we can enable dynamic navbar
