@@ -16,7 +16,6 @@ var mainView = myApp.addView('.view-main', {
 });
 
 
-
 myApp.onPageInit('index2', function (page) {
   var pageContainer = $$(page.container);
   pageContainer.find('.botonSiguiente').on('click', function () {
@@ -152,13 +151,11 @@ myApp.onPageInit('registroUsuario', function (page) {
 
 myApp.onPageInit('principal2', function (page) {
   var pageContainer = $$(page.container);
-  //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
   //ojo
   $$.get(backend +'/circuits/'+ circuit, function (data) {
     var arreglo=JSON.parse(data);
-    document.getElementById("circuitName").innerHTML = "Carrera: " +arreglo.name;
-    document.getElementById("userMail").innerHTML = "Usuario: " + email;
-    //pageContainer.find('a[name="textoCarrera"]').val(arreglo[0].name);
+    //document.getElementById("circuitName").innerHTML = "Carrera: " +arreglo.name;
+    //document.getElementById("userMail").innerHTML = "Usuario: " + email;
   });
   //obtenga nodosVisitados, si no tiene ninguno del circuito seleccionado que le dé la primera pista
   var params = '{"user_id":'+ user + ', "circuit_id":' + circuit + '}';
@@ -260,7 +257,7 @@ myApp.onPageInit('escanear', function (page) {
       */
 
       if(nodo_id=="" || codigo==null){
-        myApp.alert('No tiene pistas pendientes para seguir');
+        myApp.alert('Debe ingresar un código válido');
       }
       else{
       var params= '{"node_id":' + nodo_id + ', "code":"' + codigo + '"}';
@@ -311,7 +308,7 @@ myApp.onPageInit('escanear', function (page) {
         */
         var codigo = pageContainer.find('input[name="codeText"]').val();
         if(nodo_id=="" || codigo==""){
-          myApp.alert('No tiene pistas pendientes para seguir');
+          myApp.alert('Debe ingresar un código válido');
         }
         else{
         var params= '{"node_id":' + nodo_id + ', "code":"' + codigo + '"}';
@@ -365,15 +362,15 @@ myApp.onPageInit('escanear', function (page) {
     var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
     var selectObject= pageContainer.find('select[name="preguntas"]');
     $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
-      var arreglo=JSON.parse(data);
-      if(Object.keys(arreglo).length==0){
+      var arregloB=JSON.parse(data);
+      if(Object.keys(arregloB).length==0){
         myApp.alert('No tiene preguntas pendientes de respuesta');
       }
       else{
 
         var test="";
-        for(i=0;i < Object.keys(arreglo).length; i++){
-          test+= arreglo[i].question + '<br><br>';
+        for(i=0;i < Object.keys(arregloB).length; i++){
+          test+= arregloB[i].question + '<br><br>';
         }
         document.getElementById("listaPreguntas").innerHTML = test;
       }
@@ -387,16 +384,16 @@ myApp.onPageInit('response', function (page) {
   var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
   var selectObject= pageContainer.find('select[name="preguntas"]');
   $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
-    var arreglo=JSON.parse(data);
-    if(Object.keys(arreglo).length==0){
-      myApp.alert('No tiene preguntas pendientes de respuesta');
+    var arregloB=JSON.parse(data);
+    if(Object.keys(arregloB).length==0){
+      myApp.alert('No tiene preguntas pendientes para contestar');
     }
     else{
       //cargar valores en el select carrerasInscritas
-      for(i=0;i < Object.keys(arreglo).length; i++){
+      for(i=0;i < Object.keys(arregloB).length; i++){
         var opcion = document.createElement("option");
-        opcion.text = arreglo[i].question;
-        opcion.value = arreglo[i].id;
+        opcion.text = arregloB[i].question;
+        opcion.value = arregloB[i].id;
         selectObject.append(opcion);
       }
     }
@@ -423,7 +420,7 @@ myApp.onPageInit('response', function (page) {
           //validar la respuesta
           var params= '{"question_id":' + question +', "answer":"' + respuesta + '"}';
             $$.post(backend +'/questions/validate', params, function (data) {
-              var arreglo=JSON.parse(data);
+              var arregloB=JSON.parse(data);
             if(data == 'false'){
               myApp.alert('Respuesta incorrecta, trate nuevamente ');
             }
@@ -515,7 +512,7 @@ myApp.onPageInit('score', function (page) {
     var longitud= Object.keys(arreglo).length;
     var top=5;
     if(longitud == 0){
-      myApp.alert('Ningún participante tiene nodos visitados aún!! ');
+      myApp.alert('Carrera de Observación UAM','Ningún participante tiene nodos visitados aún!! ');
     }
     else{
       if(longitud < 4){
