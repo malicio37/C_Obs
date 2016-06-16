@@ -214,16 +214,11 @@ myApp.onPageInit('verPista', function (page) {
   //var circuitName= pageContainer.find('text[name="nombreCarrera"]');
   $$.post(backend +'/nodes/showhint',params, function (data) {
     var arreglo=JSON.parse(data);
-    if(Object.keys(arreglo).length==0){
-      myApp.alert('No tiene pistas disponibles');
-    }
-    else{
       var test="";
       for(i=0;i < Object.keys(arreglo).length; i++){
         test+= arreglo[i].hint + '<br><br>';
       }
       document.getElementById("listaPistas").innerHTML = test;
-    }
   });
 });
 
@@ -236,10 +231,6 @@ myApp.onPageInit('escanear', function (page) {
   var params = '{"user_id":'+ user + ', "circuit_id":'+circuit+'}';
   $$.post(backend +'/nodes/showhint',params, function (data) {
     var arreglo=JSON.parse(data);
-    if(Object.keys(arreglo).length==0){
-      myApp.alert('No tiene pistas pendientes para seguir');
-    }
-    else{
       //cargar valores en el select carrerasInscritas
       for(i=0;i < Object.keys(arreglo).length; i++){
         var opcion = document.createElement("option");
@@ -247,7 +238,6 @@ myApp.onPageInit('escanear', function (page) {
         opcion.value = arreglo[i].id;
         selectObject.append(opcion);
       }
-    }
   });
   pageContainer.find('.botonEscanear').on('click', function () {
       var nodo_id= pageContainer.find('select[name="pistasQR"]').val();
@@ -301,7 +291,14 @@ myApp.onPageInit('escanear', function (page) {
     });
 
     pageContainer.find('.botonPasarCodigo').on('click', function () {
-        var nodo_id= pageContainer.find('select[name="pistasQR"]').val();
+
+
+      var nodo_id= pageContainer.find('select[name="pistasQR"]').val();
+      if(nodo_id==""){
+        myApp.alert('No tiene pistar que escanear, debe encontrar una pista antes');
+      }
+      else{
+
 
         /**
         * carga de datos del QR
@@ -349,6 +346,7 @@ myApp.onPageInit('escanear', function (page) {
           }
         });
         }
+      }
       });
 
   });
@@ -363,17 +361,12 @@ myApp.onPageInit('escanear', function (page) {
     var selectObject= pageContainer.find('select[name="preguntas"]');
     $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
       var arregloB=JSON.parse(data);
-      if(Object.keys(arregloB).length==0){
-        myApp.alert('No tiene preguntas pendientes de respuesta');
-      }
-      else{
 
         var test="";
         for(i=0;i < Object.keys(arregloB).length; i++){
           test+= arregloB[i].question + '<br><br>';
         }
         document.getElementById("listaPreguntas").innerHTML = test;
-      }
     });
   });
 
@@ -385,10 +378,6 @@ myApp.onPageInit('response', function (page) {
   var selectObject= pageContainer.find('select[name="preguntas"]');
   $$.post(backend +'/nodesdiscovered/showquestion',params, function (data) {
     var arregloB=JSON.parse(data);
-    if(Object.keys(arregloB).length==0){
-      myApp.alert('No tiene preguntas pendientes para contestar');
-    }
-    else{
       //cargar valores en el select carrerasInscritas
       for(i=0;i < Object.keys(arregloB).length; i++){
         var opcion = document.createElement("option");
@@ -396,7 +385,6 @@ myApp.onPageInit('response', function (page) {
         opcion.value = arregloB[i].id;
         selectObject.append(opcion);
       }
-    }
   });
   pageContainer.find('.botonResponder').on('click', function () {
       var question= pageContainer.find('select[name="preguntas"]').val();
@@ -495,7 +483,7 @@ myApp.onPageInit('puntuacion', function (page) {
   });
   $$.get(backend +'/nodesdiscovered/score/'+user+'/'+circuit, function (data) {
     var arreglo=JSON.parse(data);
-    texto+= Object.keys(arreglo).length + "</br> A continuación los nombres de los nodos que has completado: </br>";
+    texto+= Object.keys(arreglo).length + ".</br></br> A continuación los nombres de los nodos que has completado: </br></br>";
     for(i=0;i < Object.keys(arreglo).length; i++){
       texto+= arreglo[i].name + '<br>';
     }
@@ -521,7 +509,7 @@ myApp.onPageInit('score', function (page) {
 
       //generar la tabla del ranking
 
-      texto='<table>	<tr>		<td>Posición</td>		<td>Usuario</td>		<td>Cant. Nodos Visitados</td>	</tr>';
+      texto='<table>	<tr>		<td>Pos.</td>		<td>Usuario</td>		<td>Nodos</td>	</tr>';
       for(i=0;i < top; i++){
         texto+= '<tr><td>'+ (i+1) + '</td><td>' + arreglo[i].email + '</td><td>'+ arreglo[i].cantidad+ '</td></tr>';
       }

@@ -21,6 +21,10 @@ div[class*="col-"] {
 .col-20 {
     width: auto!important;
 }
+.col-75 {
+    width: auto!important;
+	border: 0!important;
+}
 .list-block select {
     white-space: normal;
     height: auto;
