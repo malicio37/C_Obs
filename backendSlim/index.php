@@ -263,7 +263,7 @@ function getLogin() {
 
 /**
 * POST /inscriptions/user
-* @param user_id $user_id
+* @param user_id
 * @return mixed
 */
 function getCircuitInscripted(){
@@ -473,7 +473,7 @@ function getNodediscoveredId() {
 			 echo '{"error":{"text":'. $e->getMessage() .'}}';
 	 }
 }
-//{"question_id": 2, "response":"jmmejia@autonoma.edu.co"}
+
 
 
 
