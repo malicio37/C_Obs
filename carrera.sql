@@ -1,0 +1,338 @@
+-- phpMyAdmin SQL Dump
+-- version 4.5.1
+-- http://www.phpmyadmin.net
+--
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 17-06-2016 a las 01:58:06
+-- Versión del servidor: 10.1.13-MariaDB
+-- Versión de PHP: 5.6.21
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Base de datos: `carrera`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `circuit`
+--
+
+CREATE TABLE `circuit` (
+  `id` int(11) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  `status` tinyint(1) NOT NULL,
+  `description` varchar(240) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `circuit`
+--
+
+INSERT INTO `circuit` (`id`, `name`, `status`, `description`) VALUES
+(1, 'COSem12016', 1, 'Primera carrera de observación'),
+(2, 'Intersemestral2016', 1, 'carrera de observación intersemestral');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inscription`
+--
+
+CREATE TABLE `inscription` (
+  `id` int(11) NOT NULL,
+  `circuit_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `inscriptionDate` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `inscription`
+--
+
+INSERT INTO `inscription` (`id`, `circuit_id`, `user_id`, `inscriptionDate`) VALUES
+(1, 1, 3, '2016-06-15 00:00:00');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `node`
+--
+
+CREATE TABLE `node` (
+  `id` int(11) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  `description` text,
+  `code` varchar(60) NOT NULL,
+  `latitude` float NOT NULL,
+  `longitude` float NOT NULL,
+  `hint` text NOT NULL,
+  `circuit_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `node`
+--
+
+INSERT INTO `node` (`id`, `name`, `description`, `code`, `latitude`, `longitude`, `hint`, `circuit_id`) VALUES
+(1, 'BIBLIOTECA', 'BIBLIOTECA', '0.21129946802863803', 20.1, 120.5, 'SILENCIO, ESPACIO Y CONOCIMIENTO ENCONTRARAS EN ESTE LUGAR', 1),
+(2, 'CAJA', 'CAJA', '0.8660736259688377', 20.1, 120.5, 'AQUÍ TU SEMESTRE Y LIBROS HAS DE PAGAR', 1),
+(3, 'REGISTRO ACADEMICO', 'REGISTRO ACADEMICO', '0.6964697564919198', 20.1, 120.5, 'EN ESTE LUGAR EL PROCESO DE INSCRIPCION ACENTARAS', 1),
+(4, 'MERCADEO', 'MERCADEO', '0.8841279352867305', 20.1, 120.5, 'SUS ENCARGADOS LA OFERTA ACADEMICA Y AYUDA ADMINISTRATIVA TE OFRECERAN', 1),
+(5, 'RELACIONES INTERNACIONALES', 'RELACIONES INTERNACIONALES', '0.3312304376915381', 20.1, 120.5, 'SI UN INTERCAMBIO QUIERES HACER A ESTE LUGAR DEBES LLEGAR', 1),
+(6, 'CARTERA', 'CARTERA', '0.003768413331143943', 20.1, 120.5, 'PLAZOS DE FINANCIAMIENTO Y OPCIONES A PROBLEMAS ECONOMICAS ACA TE DARAN', 1),
+(7, 'DESARROLLO HUMANO', 'DESARROLLO HUMANO', '0.025150784314750492', 20.1, 120.5, 'SUS ENCARGADOS VELAN POR TU BIENESTAR MENTAL Y PSICOLOGICO, ADEMAS DE AYUDA CON DIFICULTADES ACADEMICAS', 1),
+(8, 'SERVICIOS MEDICOS', 'SERVICIOS MEDICOS', '0.11444871231396563', 20.1, 120.5, 'EN ESTE SITIO ENCONTRARAS UN MEDICO QUE TE PUEDE INDICAR QUE TRATAMIENTO TOMAR', 1),
+(9, 'ATENCION PREHOSPITALARIA', 'ATENCION PREHOSPITALARIA', '0.49679123935922165', 20.1, 120.5, 'SI TE SIENTES FISICAMENTE MAL EN ESTE LUGAR UNA PERSONA PROFESIONAL TE ATENDERA', 1),
+(10, 'LABORATORIO ELECTRONICA', 'LABORATORIO ELECTRONICA', '0.14061009058785634', 20.1, 120.5, 'LOS MONTAJES ELECTRONICOS Y EXPERIMENTOS FISICOS EN ESTE LUGAR DESARROLLARAS', 1),
+(11, 'GIMNASIO', 'GIMNASIO', '0.21267676559526172', 20.1, 120.5, 'ALLI EJERCICIO, JUGAR Y LIBERAR TENSION PUEDES REALIZAR', 1),
+(12, 'GESTION DE TECNOLOGIA', 'GESTION DE TECNOLOGIA', '0.6415535869463846', 20.1, 120.5, 'OLVIDO DE CONTRASEÑAS Y PROBLEMAS DE INGRESO A LOS SISTEMAS AQUÍ TE SOLUCIONARAN', 1),
+(13, 'DECANATURA INGENIERIA', 'DECANATURA INGENIERIA', '0.5697376686797828', 20.1, 120.5, 'LOS PROCESOS ACADEMICOS DESDE ALLÍ SE GOBERNARAN', 1),
+(14, 'SALA DE PROFESORES DE INGENIER', 'SALA DE PROFESORES DE INGENIERIA', '0.9240276132934052', 20.1, 120.5, 'ASISTENCIA Y CONSULTARIA DE QUIENES TE ENSEÑAN EN ESTE LUGAR TENDRAS', 1),
+(15, 'CENTRO DE INFORMATICA', 'CENTRO DE INFORMATICA', '0.9109250911613229', 20.1, 120.5, 'LAS HERRAMIENTAS COMPUTACIONES EN ESTE PISO ENTERO ENCONTRARAS', 1),
+(16, 'VICERRECTORIA ACADEMICA', 'VICERRECTORIA ACADEMICA', '0.7825426466600436', 5.06681, -75.5055, 'CUANDO PROBLEMAS ACADÉMICOS ENCUENTRES, ESTE ES EL MÁXIMO ESTAMENTO A CONSULTAR', 1),
+(17, 'RECTORIA', 'RECTORIA', '0.17993799054989404', 20.1, 120.5, 'DESDE ALLÍ SE DIRIGE LA UAM', 1),
+(18, 'BIBLIOTECA', 'BIBLIOTECA', '0.5520620435029846', 20.1, 120.5, 'SILENCIO, ESPACIO Y CONOCIMIENTO ENCONTRARAS EN ESTE LUGAR', 1),
+(19, 'CAJA', 'CAJA', '0.2204962765988859', 20.1, 120.5, 'AQUÍ TU SEMESTRE Y LIBROS HAS DE PAGAR', 2),
+(20, 'REGISTRO ACADEMICO', 'REGISTRO ACADEMICO', '0.4462952832191207', 20.1, 120.5, 'EN ESTE LUGAR EL PROCESO DE INSCRIPCION ACENTARAS', 2);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `nodediscovered`
+--
+
+CREATE TABLE `nodediscovered` (
+  `id` int(11) NOT NULL,
+  `node_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `question_id` int(11) NOT NULL,
+  `status` tinyint(1) NOT NULL,
+  `statusDate1` datetime DEFAULT NULL,
+  `statusDate2` datetime DEFAULT NULL,
+  `statusDate3` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `nodediscovered`
+--
+
+INSERT INTO `nodediscovered` (`id`, `node_id`, `user_id`, `question_id`, `status`, `statusDate1`, `statusDate2`, `statusDate3`) VALUES
+(4, 4, 3, 10, 2, '2016-06-16 10:03:57', '2016-06-16 11:09:43', '2016-06-16 11:10:16'),
+(5, 17, 3, 30, 2, '2016-06-16 11:10:16', '2016-06-16 11:12:47', '2016-06-16 11:14:40'),
+(6, 16, 3, 29, 2, '2016-06-16 11:14:40', '2016-06-16 11:16:25', '2016-06-16 11:19:50'),
+(7, 12, 3, 21, 2, '2016-06-16 11:19:50', '2016-06-16 11:27:37', '2016-06-16 11:30:01'),
+(8, 9, 3, 18, 0, '2016-06-16 11:30:01', NULL, NULL),
+(9, 16, 1, 29, 2, '2016-06-16 11:31:00', '2016-06-16 11:31:33', '2016-06-16 11:31:45'),
+(10, 7, 1, 16, 0, '2016-06-16 11:31:45', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `question`
+--
+
+CREATE TABLE `question` (
+  `id` int(11) NOT NULL,
+  `question` text NOT NULL,
+  `answer` text NOT NULL,
+  `node_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `question`
+--
+
+INSERT INTO `question` (`id`, `question`, `answer`, `node_id`) VALUES
+(1, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'WBEIMAR CANO RESTREPO', 1),
+(2, '¿CUÁL ES EL NOMBRE DE LA ZONA EN QUE ENCONTRARÁS REVISTAS ESPECIALIZADAS?', 'HEMEROTECA', 1),
+(3, '¿CUÁL ES EL NOMBRE DE LA SALA DE CONSULTA ELECTRÓNICA?', 'TELEMATICA', 1),
+(4, '¿CUÁL ES EL NOMBRE DE LA SALA DONDE VIDEOS Y PELÍCULAS PUEDES ENCONTRAR?', 'VIDEOTECA', 1),
+(5, '¿QUÉ BASE DE DATOS PUEDES CONSULTAR SI DIRECTAMENTE ARTÍCULOS CIENTÍFICOS QUIERES ENCONTRAR?', 'SCIENCE DIRECT', 1),
+(6, '¿CUÁL ES EL NOMBRE DE LA PERSONA QUE SIEMPRE ENCUENTRAS EN ESTE LUGAR?', 'JHON JAMES LOPEZ', 2),
+(7, '¿ADEMÁS DE LA MATRÍCULA ESTOS ELEMENTOS DE ESTUDIO ACÁ PUEDES PAGAR PARA LUEGO EN EL ALMACÉN RECLAMAR?', 'LIBROS', 2),
+(8, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'YHON HENRY BARRETO MIRANDA', 3),
+(9, '¿QUÉ DOCUMENTO TE ENTREGARÁN EN ÉSTE LUGAR QUE TE SERVIRÁ PARA IDENTIFICARTE E INGRESAR A LA UAM?', 'CARNET ESTUDIANTIL', 3),
+(10, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'SONIA PATRICIA VILLAMIL RODRIGUEZ', 4),
+(11, '¿INDICA CUAL ES EL CORREO GENERAL DE MERCADEO Y SERVICIO AL CLIENTE?', 'SERVICIOALCLIENTE@AUTONOMA.EDU.CO', 4),
+(12, '¿CUÁL ES EL NOMBRE DEL PROGRAMA DE MOVILIDAD ACADEMICA ENTRE COLOMBIA Y ARGENTINA?', 'MACA', 5),
+(13, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'VIVIANA FERNANDA NIETO PADILLA', 5),
+(14, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'CARMENZA GONZALEZ BURITICA', 6),
+(15, 'DE ESTA INSTITUCIÓN GUBERNAMENTAL UN DELEGADO EN ESTA OFICINA ENCONTRARÁS, ¿CUAL ES SU NOMBRE?', 'ICETEX', 6),
+(16, '¿NOMBRA AL VICERRECTOR DE DESARROLLO HUMANO?', 'ALBERTO CARDONA AGUIRRE', 7),
+(17, '¿ELLA ES LA ENCARGADA DE ASIGNARTE CITAS Y RECIBIRTE EN ESTE LUGAR?', 'IRENE MARULANDA SALGADO', 8),
+(18, '¿ES UNO DE LOS ENCARGADOS Y SU PRIMER NOMBRE INICIA CON L Y EL SEGUNDO CON C?', 'LUIS CARLOS RIOS DIAZ', 9),
+(19, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'HISNEL FRANCO MARQUEZ', 10),
+(20, '¿DI EL NOMBRE CON EL QUE SE CONOCE EL EDIFICIO EN QUE SE ENCUENTRA EL GIMNASIO?', 'SACATIN', 11),
+(21, '¿CUÁL ES EL CORREO DE ATENCIÓN GENERAL DE ESTE LUGAR?', 'GESTEC@AUTONOMA.EDU.CO', 12),
+(22, '¿CUÁL ES EL NOMBRE DE LA COMUNITY MANAGER UAM?', 'MARGARITA BENAVIDES', 12),
+(23, '¿CUÁL ES EL NOMBRE DE LA DECANO DE INGENIERIA?', 'ALBA PATRICIA ARIAS OSORIO', 13),
+(24, '¿CUAL ES EL NOMBRE DE LA AUXILIAR ADMINISTRATIVA DE INGENIERÍA EN EL DÍA?', 'BEATRIZ ALVARAN DAVILA', 13),
+(25, '¿CUAL ES EL NOMBRE DE LA AUXILIAR ADMINISTRATIVA DE INGENIERÍA EN LA NOCHE?', 'INES ARGELIA LOAIZA GARZON', 13),
+(26, '¿CUAL ES EL NOMBRE DE LA COORDINADORA DEL PROGRAMA DE INGENIERIA?', 'LINA MARIA LOPEZ URIBE', 14),
+(27, '¿NOMBRA AL PROFESOR CUYO CORREO ES JIMEZAM?', 'JORGE IVAN MEZA MARTINEZ', 14),
+(28, '¿INDICA EL NOMBRE DE LA ENCARGADA DEL CENTRO DE INFORMATICA?', 'MARTHA LILIA MORALES GONZALEZ', 15),
+(29, '¿NOMBRA AL VICERRECTOR ACADEMICO DE LA UAM?', 'IVAN ESCOBAR ESCOBAR', 16),
+(30, '¿NOMBRA AL RECTOR DE LA INSTITUCION?', 'GABRIEL CADENA GOMEZ', 17),
+(31, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'WBEIMAR CANO RESTREPO', 18),
+(32, '¿CUÁL ES EL NOMBRE DE LA ZONA EN QUE ENCONTRARÁS REVISTAS ESPECIALIZADAS?', 'HEMEROTECA', 18),
+(33, '¿CUÁL ES EL NOMBRE DE LA SALA DE CONSULTA ELECTRÓNICA?', 'TELEMATICA', 18),
+(34, '¿CUÁL ES EL NOMBRE DE LA SALA DONDE VIDEOS Y PELÍCULAS PUEDES ENCONTRAR?', 'VIDEOTECA', 18),
+(35, '¿QUÉ BASE DE DATOS PUEDES CONSULTAR SI DIRECTAMENTE ARTÍCULOS CIENTÍFICOS QUIERES ENCONTRAR?', 'SCIENCE DIRECT', 18),
+(36, '¿CUÁL ES EL NOMBRE DE LA PERSONA QUE SIEMPRE ENCUENTRAS EN ESTE LUGAR?', 'JHON JAMES LOPEZ', 19),
+(37, '¿ADEMÁS DE LA MATRÍCULA ESTOS ELEMENTOS DE ESTUDIO ACÁ PUEDES PAGAR PARA LUEGO EN EL ALMACÉN RECLAMAR?', 'LIBROS', 19),
+(38, '¿CUÁL ES EL NOMBRE DEL COORDINADOR DE ÉSTE LUGAR?', 'YHON HENRY BARRETO MIRANDA', 19),
+(39, '¿QUÉ DOCUMENTO TE ENTREGARÁN EN ÉSTE LUGAR QUE TE SERVIRÁ PARA IDENTIFICARTE E INGRESAR A LA UAM?', 'CARNET ESTUDIANTIL', 20);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `user`
+--
+
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  `lastname` varchar(30) NOT NULL,
+  `birthDate` date NOT NULL,
+  `email` varchar(60) NOT NULL,
+  `password` varchar(60) NOT NULL,
+  `color` varchar(60) NOT NULL,
+  `gender` varchar(20) NOT NULL,
+  `type` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `user`
+--
+
+INSERT INTO `user` (`id`, `name`, `lastname`, `birthDate`, `email`, `password`, `color`, `gender`, `type`) VALUES
+(1, 'JULIAN MAURICIO', 'MEJIA CARDONA', '1984-01-28', 'jmmejia@autonoma.edu.co', '202cb962ac59075b964b07152d234b70', 'verde', 'hombre', 'administrador'),
+(3, 'User', 'Prueba', '1948-01-28', 'algo', '202cb962ac59075b964b07152d234b70', '#40ea59', 'Hombre', 'usuario'),
+(4, 'a', 'a', '2014-04-30', 'a', '827ccb0eea8a706c4c34a16891f84e7b', '#000000', 'Hombre', 'usuario');
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `circuit`
+--
+ALTER TABLE `circuit`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `inscription`
+--
+ALTER TABLE `inscription`
+  ADD PRIMARY KEY (`id`,`circuit_id`,`user_id`),
+  ADD KEY `circuit_id` (`circuit_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indices de la tabla `node`
+--
+ALTER TABLE `node`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `code` (`code`),
+  ADD KEY `circuit_id` (`circuit_id`);
+
+--
+-- Indices de la tabla `nodediscovered`
+--
+ALTER TABLE `nodediscovered`
+  ADD PRIMARY KEY (`id`,`node_id`,`user_id`),
+  ADD KEY `node_id` (`node_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `question_id` (`question_id`);
+
+--
+-- Indices de la tabla `question`
+--
+ALTER TABLE `question`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `node_id` (`node_id`);
+
+--
+-- Indices de la tabla `user`
+--
+ALTER TABLE `user`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `circuit`
+--
+ALTER TABLE `circuit`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+--
+-- AUTO_INCREMENT de la tabla `inscription`
+--
+ALTER TABLE `inscription`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+--
+-- AUTO_INCREMENT de la tabla `node`
+--
+ALTER TABLE `node`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+--
+-- AUTO_INCREMENT de la tabla `nodediscovered`
+--
+ALTER TABLE `nodediscovered`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+--
+-- AUTO_INCREMENT de la tabla `question`
+--
+ALTER TABLE `question`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+--
+-- AUTO_INCREMENT de la tabla `user`
+--
+ALTER TABLE `user`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `inscription`
+--
+ALTER TABLE `inscription`
+  ADD CONSTRAINT `inscription_ibfk_1` FOREIGN KEY (`circuit_id`) REFERENCES `circuit` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `inscription_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `node`
+--
+ALTER TABLE `node`
+  ADD CONSTRAINT `node_ibfk_1` FOREIGN KEY (`circuit_id`) REFERENCES `circuit` (`id`);
+
+--
+-- Filtros para la tabla `nodediscovered`
+--
+ALTER TABLE `nodediscovered`
+  ADD CONSTRAINT `nodediscovered_ibfk_1` FOREIGN KEY (`node_id`) REFERENCES `node` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `nodediscovered_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `nodediscovered_ibfk_3` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `question`
+--
+ALTER TABLE `question`
+  ADD CONSTRAINT `question_ibfk_1` FOREIGN KEY (`node_id`) REFERENCES `node` (`id`);
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

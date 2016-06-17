@@ -28,7 +28,7 @@ CREATE TABLE inscription(
     id            int         NOT NULL  AUTO_INCREMENT,
     circuit_id     int         NOT NULL ,
     user_id     int         NOT NULL ,
-    inscriptionDate  DATETIME,
+    inscription_date  DATETIME,
     PRIMARY KEY (id, circuit_id, user_id),
     FOREIGN KEY (circuit_id)
     REFERENCES circuit(id) ON DELETE CASCADE,
